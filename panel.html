@@ -13,12 +13,13 @@
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 850px; margin: 0 auto; }
+        .container { max-width: 900px; margin: 0 auto; }
+        
         .header {
             background: linear-gradient(135deg, #1a1a3e, #2d1b69);
-            padding: 30px;
-            border-radius: 20px;
-            margin-bottom: 25px;
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 20px;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.08);
         }
@@ -28,7 +29,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .header p { color: #94a3b8; margin-top: 5px; }
+        .header p { color: #94a3b8; margin-top: 4px; }
         .badge {
             display: inline-block;
             background: rgba(168, 85, 247, 0.2);
@@ -36,30 +37,90 @@
             padding: 4px 14px;
             border-radius: 20px;
             font-size: 0.8rem;
-            margin-top: 8px;
+            margin-top: 6px;
             border: 1px solid rgba(168, 85, 247, 0.2);
         }
+        
         .card {
             background: rgba(255,255,255,0.04);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 18px;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
             border: 1px solid rgba(255,255,255,0.06);
         }
-        .card h2 { color: #e2e8f0; margin-bottom: 15px; }
-        .card h3 { color: #94a3b8; font-size: 0.95rem; margin-bottom: 10px; }
+        .card-title {
+            color: #e2e8f0;
+            font-size: 1.05rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .card-title small {
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
+            color: #e2e8f0;
+            font-size: 0.82rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: all 0.3s ease;
+            line-height: 1.5;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+        }
+        textarea::placeholder { color: #475569; }
+        
+        .format-hint {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            border: 1px dashed rgba(255,255,255,0.06);
+        }
+        .format-hint code {
+            color: #c084fc;
+            background: rgba(168, 85, 247, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            word-break: break-all;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 14px;
+        }
+        
         .btn {
-            padding: 14px 32px;
+            padding: 12px 28px;
             border: none;
             border-radius: 10px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-block;
-            text-decoration: none;
-            text-align: center;
-            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         .btn-primary {
             background: linear-gradient(135deg, #7c3aed, #a855f7);
@@ -77,6 +138,14 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
         }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+        }
         .btn-outline {
             background: transparent;
             color: #94a3b8;
@@ -92,53 +161,132 @@
             cursor: not-allowed;
             transform: none !important;
         }
-        .login-options {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 15px;
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+        
+        .status {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            flex: 1;
+            min-width: 150px;
+            word-break: break-word;
         }
-        .login-options .btn { width: auto; min-width: 200px; }
-        textarea {
-            width: 100%;
-            min-height: 80px;
-            padding: 12px 14px;
+        .status.success { color: #34d399; }
+        .status.error { color: #f87171; }
+        .status.info { color: #60a5fa; }
+        
+        .user-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px 16px;
+            background: rgba(168, 85, 247, 0.08);
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.06);
-            color: #e2e8f0;
-            font-size: 0.85rem;
-            font-family: 'Courier New', monospace;
-            resize: vertical;
+            border: 1px solid rgba(168, 85, 247, 0.1);
+            margin-top: 12px;
+        }
+        .user-bar .user-name { color: #c084fc; font-weight: 600; }
+        .user-bar .user-email { color: #94a3b8; font-size: 0.85rem; }
+        .user-bar .count { color: #34d399; font-size: 0.85rem; }
+        
+        .email-item {
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            border-left: 3px solid #7c3aed;
             transition: all 0.3s ease;
         }
-        textarea:focus {
-            outline: none;
-            border-color: #a855f7;
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+        .email-item:hover {
+            background: rgba(255,255,255,0.07);
+            transform: translateX(4px);
         }
-        textarea::placeholder { color: #475569; }
-        .note {
-            color: #fbbf24;
-            font-size: 0.85rem;
-            margin-top: 12px;
-            padding: 12px 16px;
-            background: rgba(251, 191, 36, 0.08);
-            border-radius: 8px;
-            border: 1px solid rgba(251, 191, 36, 0.1);
-        }
-        .note code {
+        .email-item .otp-box {
+            background: rgba(168, 85, 247, 0.15);
             color: #c084fc;
-            background: rgba(168, 85, 247, 0.1);
-            padding: 2px 8px;
-            border-radius: 4px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 2px 16px;
+            border-radius: 8px;
+            display: inline-block;
+            letter-spacing: 3px;
+            border: 1px solid rgba(168, 85, 247, 0.2);
         }
-        .divider {
-            border: none;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            margin: 20px 0;
+        .email-item .from { color: #60a5fa; font-weight: 600; font-size: 0.95rem; }
+        .email-item .subject { color: #e2e8f0; margin: 4px 0; }
+        .email-item .time { color: #64748b; font-size: 0.8rem; }
+        .email-item .preview {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            display: none;
         }
+        .email-item .preview.show { display: block; }
+        .toggle-preview {
+            color: #7c3aed;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .toggle-preview:hover { text-decoration: underline; }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(168, 85, 247, 0.2);
+            border-top-color: #a855f7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
+        
+        .saved-creds {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .saved-creds-item {
+            background: rgba(255,255,255,0.06);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.3s ease;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .saved-creds-item:hover {
+            background: rgba(168, 85, 247, 0.15);
+            border-color: #7c3aed;
+            color: #fff;
+        }
+        
         .footer {
             text-align: center;
             color: #475569;
@@ -147,228 +295,282 @@
             margin-top: 20px;
             border-top: 1px solid rgba(255,255,255,0.05);
         }
-        .status {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-top: 12px;
-            display: none;
-        }
-        .status.loading {
-            display: block;
-            background: rgba(96, 165, 250, 0.1);
-            color: #60a5fa;
-            border: 1px solid rgba(96, 165, 250, 0.1);
-        }
-        .status.success {
-            display: block;
-            background: rgba(52, 211, 153, 0.1);
-            color: #34d399;
-            border: 1px solid rgba(52, 211, 153, 0.1);
-        }
-        .status.error {
-            display: block;
-            background: rgba(248, 113, 113, 0.1);
-            color: #f87171;
-            border: 1px solid rgba(248, 113, 113, 0.1);
-        }
-        #result {
-            display: none;
-            margin-top: 15px;
-        }
-        #result.show { display: block; }
-        .result-card {
-            background: rgba(255,255,255,0.04);
-            border-radius: 12px;
-            padding: 16px;
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-        .result-item {
-            background: rgba(255,255,255,0.03);
-            padding: 12px 16px;
-            margin: 6px 0;
-            border-radius: 8px;
-            border-left: 3px solid #7c3aed;
-        }
-        .result-item .r-from { color: #60a5fa; font-weight: 600; }
-        .result-item .r-subject { color: #e2e8f0; }
-        .result-item .r-otp {
-            background: rgba(168, 85, 247, 0.15);
-            color: #c084fc;
-            font-size: 1.3rem;
-            font-weight: 700;
-            padding: 2px 14px;
-            border-radius: 6px;
-            display: inline-block;
-            letter-spacing: 2px;
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            margin: 4px 0;
-        }
-        .result-item .r-time { color: #64748b; font-size: 0.8rem; }
-        .result-item .r-preview {
-            color: #94a3b8;
-            font-size: 0.85rem;
-            margin-top: 4px;
-            padding: 6px 10px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-            display: none;
-        }
-        .result-item .r-preview.show { display: block; }
-        .result-item .toggle-preview {
-            color: #7c3aed;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 2px;
-            display: inline-block;
-        }
-        .result-item .toggle-preview:hover { text-decoration: underline; }
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(168, 85, 247, 0.2);
-            border-top-color: #a855f7;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        
         @media (max-width: 640px) {
             .header h1 { font-size: 1.5rem; }
-            .login-options .btn { width: 100%; }
+            .controls { flex-direction: column; }
+            .controls .btn { width: 100%; justify-content: center; }
+            .user-bar { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
             <h1>📧 Email OTP Reader</h1>
-            <p>আপনার Outlook/Hotmail অ্যাকাউন্ট থেকে OTP পড়ুন</p>
+            <p>আপনার ক্রেডেনশিয়াল স্ট্রিং পেস্ট করুন এবং শেষ ৫টি ইমেইল দেখুন</p>
             <span class="badge">🔒 শুধুমাত্র আপনার নিজের অ্যাকাউন্ট</span>
         </div>
-
-        <!-- Method 1: Login Button -->
+        
+        <!-- Credential Input -->
         <div class="card">
-            <h2>🚀 পদ্ধতি ১: সরাসরি লগইন</h2>
-            <p style="color:#94a3b8;margin-bottom:15px;">Microsoft অ্যাকাউন্ট দিয়ে লগইন করে স্বয়ংক্রিয়ভাবে ইমেইল দেখুন</p>
-            <a href="/auth/login" class="btn btn-primary" style="width:100%;">
-                🔑 Microsoft অ্যাকাউন্ট দিয়ে লগইন করুন
-            </a>
-        </div>
-
-        <!-- Method 2: Token -->
-        <div class="card">
-            <h3>📌 পদ্ধতি ২: টোকেন পেস্ট করুন (ঐচ্ছিক)</h3>
-            <p style="color:#64748b;font-size:0.85rem;margin-bottom:10px;">
-                আপনার কাছে access_token থাকলে এখানে পেস্ট করুন
-            </p>
-            <textarea id="tokenInput" placeholder="এখানে আপনার access_token পেস্ট করুন..."></textarea>
-            <button onclick="fetchWithToken()" class="btn btn-success" style="margin-top:10px;width:100%;">
-                📥 টোকেন দিয়ে ইমেইল দেখুন
-            </button>
-            <div id="status" class="status"></div>
-        </div>
-
-        <!-- Results -->
-        <div id="result">
-            <div class="card" style="padding:16px;">
-                <div id="resultContent"></div>
+            <div class="card-title">
+                🔑 ক্রেডেনশিয়াল স্ট্রিং
+                <small>(email:password:access_token:refresh_token)</small>
+            </div>
+            
+            <textarea id="credInput" placeholder="আপনার পুরো ক্রেডেনশিয়াল স্ট্রিং এখানে পেস্ট করুন...">EarlineLymon4897@outlook.com:gEknRCSodJ:M.C529_SN1.0.U.MsaArtifacts.-CtBYsn6Ao!RIwe70umXWdqEcG4oCu8Mxz*buwvle9zlQ9AlzJrmW2DR49FG!qf2oFwrpLHWfbMOuJZawQvLxrYn5PRKcIPl4jNEzYCO6GS3tubsB!IW90H00skkRUNloHblilUBgpXl6Z!KZ1KdtddnvwG2uiFEXVu*3OCrkkXJlGEtilSicI7NDMgMn94E3X8dLhMNz*mmkCuORHSGwTTNkggd6G*3TC3uW3d*aaZTBWexRwvyLdKrT0LkxVfWf!TAcasre4RNBYQNIO9*44NYH7!kN7IPvtgKQ!KGh3Cme938YhyNfsl4hNTB9VO!qRoF5EaR8wu54VDbyrdCbg0UfKF4TbfO3*s5EH3wBhU4zprSjDMfoyB*IoldcRuRenVN017R4w4uIDYiZqdB9Dy0$:8b4ba9dd-3ea5-4e5f-86f1-ddba2230dcf2</textarea>
+            
+            <div class="format-hint">
+                📝 <strong>ফরম্যাট:</strong><br>
+                <code>email@outlook.com:password:access_token:refresh_token</code>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" onclick="fetchEmails(5)">📥 শেষ ৫টি ইমেইল দেখুন</button>
+                <button class="btn btn-outline btn-sm" onclick="clearAll()">🗑️ ক্লিয়ার</button>
+                <span class="status" id="status">✅ প্রস্তুত</span>
+            </div>
+            
+            <!-- সংরক্ষিত ক্রেডেনশিয়াল -->
+            <div style="margin-top:12px;">
+                <span style="color:#64748b;font-size:0.8rem;">📂 সংরক্ষিত: </span>
+                <div class="saved-creds" id="savedCreds"></div>
             </div>
         </div>
-
+        
+        <!-- User Info -->
+        <div id="userBar" style="display:none;" class="user-bar">
+            <span class="user-name" id="userName">👤</span>
+            <span class="user-email" id="userEmail">📧</span>
+            <span class="count" id="emailCount">0টি ইমেইল</span>
+        </div>
+        
+        <!-- Email List -->
+        <div class="card" style="padding:16px;">
+            <div id="emailContainer">
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <p>কোনো ইমেইল নেই</p>
+                    <p style="font-size:0.85rem;color:#475569;">উপরে আপনার ক্রেডেনশিয়াল পেস্ট করে "ইমেইল দেখুন" ক্লিক করুন</p>
+                </div>
+            </div>
+        </div>
+        
         <div class="footer">
             ⚡ Microsoft Graph API ব্যবহার করে | আপনার নিজের ডেটা নিরাপদে রাখুন
         </div>
     </div>
-
+    
     <script>
-        async function fetchWithToken() {
-            const token = document.getElementById('tokenInput').value.trim();
-            const status = document.getElementById('status');
-            const result = document.getElementById('result');
-            const content = document.getElementById('resultContent');
-
-            if (!token) {
-                status.className = 'status error';
-                status.textContent = '⚠️ দয়া করে একটি টোকেন দিন!';
-                status.style.display = 'block';
+        // DOM রেফারেন্স
+        const credInput = document.getElementById('credInput');
+        const statusEl = document.getElementById('status');
+        const container = document.getElementById('emailContainer');
+        const userBar = document.getElementById('userBar');
+        const userName = document.getElementById('userName');
+        const userEmail = document.getElementById('userEmail');
+        const emailCount = document.getElementById('emailCount');
+        const savedCredsDiv = document.getElementById('savedCreds');
+        
+        // ============= সংরক্ষিত ক্রেডেনশিয়াল =============
+        function loadSavedCreds() {
+            const saved = localStorage.getItem('savedCreds');
+            if (saved) {
+                try {
+                    const creds = JSON.parse(saved);
+                    renderSavedCreds(creds);
+                    return creds;
+                } catch(e) {}
+            }
+            return [];
+        }
+        
+        function renderSavedCreds(creds) {
+            savedCredsDiv.innerHTML = '';
+            if (creds.length === 0) {
+                savedCredsDiv.innerHTML = '<span style="color:#475569;font-size:0.8rem;">কোনো ক্রেডেনশিয়াল সেভ নেই</span>';
                 return;
             }
-
-            status.className = 'status loading';
-            status.textContent = '⏳ ইমেইল পড়া হচ্ছে...';
-            status.style.display = 'block';
-            result.className = '';
-            content.innerHTML = '';
-
+            
+            creds.forEach((cred, idx) => {
+                const el = document.createElement('span');
+                el.className = 'saved-creds-item';
+                const email = cred.split(':')[0] || 'Unknown';
+                el.textContent = email;
+                el.title = 'ক্লিক করে এই ক্রেডেনশিয়াল লোড করুন';
+                el.onclick = () => {
+                    credInput.value = cred;
+                    fetchEmails(5);
+                };
+                savedCredsDiv.appendChild(el);
+            });
+        }
+        
+        function saveCredential(cred) {
+            let creds = loadSavedCreds();
+            // ডুপ্লিকেট চেক
+            creds = creds.filter(c => c !== cred);
+            creds.unshift(cred);
+            if (creds.length > 5) creds = creds.slice(0, 5);
+            localStorage.setItem('savedCreds', JSON.stringify(creds));
+            renderSavedCreds(creds);
+        }
+        
+        // ============= ইমেইল ফেচ =============
+        async function fetchEmails(limit = 5) {
+            const credential = credInput.value.trim();
+            
+            if (!credential) {
+                setStatus('⚠️ ক্রেডেনশিয়াল দিন', 'error');
+                return;
+            }
+            
+            const btn = document.querySelector('.btn-primary');
+            btn.disabled = true;
+            btn.textContent = '⏳ লোড হচ্ছে...';
+            
+            setStatus('⏳ ইমেইল পড়া হচ্ছে...', 'info');
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top:12px;">ক্রেডেনশিয়াল চেক করা হচ্ছে...</p>
+                </div>
+            `;
+            
             try {
                 const res = await fetch('/api/fetch', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ credential: 'dummy@dummy.com:dummy:' + token })
+                    body: JSON.stringify({ credential, limit })
                 });
+                
                 const data = await res.json();
-
+                console.log('Response:', data);
+                
                 if (data.error) {
-                    status.className = 'status error';
-                    status.textContent = '❌ ' + data.error;
-                    if (data.login_url) {
-                        status.innerHTML += `<br><a href="${data.login_url}" style="color:#7c3aed;text-decoration:underline;">🔑 লগইন করুন</a>`;
-                    }
-                    return;
-                }
-
-                if (data.success) {
-                    status.className = 'status success';
-                    status.textContent = `✅ ${data.total}টি ইমেইল পাওয়া গেছে (${data.user})`;
-                    
-                    let html = `
-                        <div style="margin-bottom:12px;padding:8px 12px;background:rgba(168,85,247,0.08);border-radius:8px;border:1px solid rgba(168,85,247,0.1);">
-                            <span style="color:#c084fc;font-weight:600;">👤 ${data.user}</span>
-                            <span style="color:#64748b;margin-left:12px;">📧 ${data.email}</span>
-                            <span style="color:#34d399;margin-left:12px;">✅ ${data.total}টি ইমেইল</span>
+                    setStatus(`❌ ${data.error}`, 'error');
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">⚠️</div>
+                            <p style="color:#f87171;">${data.error}</p>
+                            <p style="font-size:0.85rem;color:#475569;margin-top:8px;">
+                                💡 সঠিক ফরম্যাট: <code style="color:#c084fc;">email:password:access_token:refresh_token</code>
+                            </p>
                         </div>
                     `;
-
-                    data.emails.forEach((email, idx) => {
-                        const otpDisplay = email.has_otp 
-                            ? `<div class="r-otp">${email.otp}</div>`
-                            : `<div style="color:#64748b;">🔴 OTP খুঁজে পাওয়া যায়নি</div>`;
-                        
-                        html += `
-                            <div class="result-item">
-                                <div class="r-from">📤 ${email.from}</div>
-                                <div class="r-subject">📌 ${email.subject}</div>
-                                <div style="margin:4px 0;">${otpDisplay}</div>
-                                <div class="r-time">🕐 ${email.received}</div>
-                                <span class="toggle-preview" onclick="togglePreview(${idx})">👁️ প্রিভিউ দেখুন</span>
-                                <div class="r-preview" id="preview-${idx}">${email.preview || 'কোনো প্রিভিউ নেই'}</div>
-                            </div>
-                        `;
-                    });
-
-                    content.innerHTML = html;
-                    result.className = 'show';
+                    userBar.style.display = 'none';
+                    return;
                 }
+                
+                if (data.success) {
+                    // ক্রেডেনশিয়াল সেভ করুন
+                    saveCredential(credential);
+                    
+                    userBar.style.display = 'flex';
+                    userName.textContent = `👤 ${data.user}`;
+                    userEmail.textContent = `📧 ${data.email}`;
+                    emailCount.textContent = `${data.total}টি ইমেইল`;
+                    
+                    renderEmails(data.emails || []);
+                    setStatus(`✅ ${data.total}টি ইমেইল পাওয়া গেছে (${data.user})`, 'success');
+                } else {
+                    setStatus('❌ কোনো ইমেইল পাওয়া যায়নি', 'error');
+                }
+                
             } catch(e) {
-                status.className = 'status error';
-                status.textContent = '❌ Error: ' + e.message;
+                setStatus('❌ সার্ভার কানেক্ট করতে পারেনি: ' + e.message, 'error');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔌</div>
+                        <p>সার্ভার অফলাইন</p>
+                        <p style="font-size:0.85rem;color:#475569;">সার্ভার চালু করুন: python server.py</p>
+                    </div>
+                `;
             }
+            
+            btn.disabled = false;
+            btn.textContent = '📥 শেষ ৫টি ইমেইল দেখুন';
         }
-
-        function togglePreview(idx) {
-            const el = document.getElementById('preview-' + idx);
+        
+        // ============= ইমেইল রেন্ডার =============
+        function renderEmails(emails) {
+            if (!emails || emails.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>কোনো ইমেইল নেই</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            emails.forEach((email, index) => {
+                const otpDisplay = email.has_otp
+                    ? `<span class="otp-box">${email.otp}</span>`
+                    : `<span style="color:#64748b;">🔴 OTP খুঁজে পাওয়া যায়নি</span>`;
+                
+                html += `
+                    <div class="email-item">
+                        <div class="from">📤 ${escapeHtml(email.from)}</div>
+                        <div class="subject">📌 ${escapeHtml(email.subject)}</div>
+                        <div style="margin:8px 0;">
+                            ${otpDisplay}
+                        </div>
+                        <div class="time">🕐 ${email.received}</div>
+                        <span class="toggle-preview" onclick="togglePreview(${index})">👁️ প্রিভিউ দেখুন</span>
+                        <div class="preview" id="preview-${index}">${escapeHtml(email.preview || 'কোনো প্রিভিউ নেই')}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function togglePreview(index) {
+            const el = document.getElementById(`preview-${index}`);
             if (el) el.classList.toggle('show');
         }
-
-        // Ctrl+Enter দিয়ে ফেচ
-        document.getElementById('tokenInput').addEventListener('keydown', function(e) {
+        
+        function clearAll() {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🗑️</div>
+                    <p>ক্লিয়ার করা হয়েছে</p>
+                </div>
+            `;
+            userBar.style.display = 'none';
+            setStatus('🗑️ ক্লিয়ার করা হয়েছে', '');
+        }
+        
+        function setStatus(msg, type) {
+            statusEl.textContent = msg;
+            statusEl.className = 'status';
+            if (type) statusEl.classList.add(type);
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ============= কীবোর্ড শর্টকাট =============
+        document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
-                fetchWithToken();
+                fetchEmails(5);
             }
         });
+        
+        // ============= পেজ লোড =============
+        loadSavedCreds();
+        
+        // অটো ফেচ
+        setTimeout(() => fetchEmails(5), 800);
     </script>
 </body>
 </html>
