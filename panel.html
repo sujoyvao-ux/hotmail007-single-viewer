@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📧 Email OTP Reader</title>
     <style>
+        /* আগের মতোই CSS (কোনো পরিবর্তন নেই) */
         * {
             margin: 0;
             padding: 0;
@@ -73,6 +74,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         
         .card-title small {
@@ -83,16 +85,17 @@
         
         textarea {
             width: 100%;
-            min-height: 100px;
+            min-height: 120px;
             padding: 14px 16px;
             border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.1);
             background: rgba(255,255,255,0.06);
-            color: #fff;
-            font-size: 0.9rem;
+            color: #e2e8f0;
+            font-size: 0.85rem;
             font-family: 'Courier New', monospace;
             resize: vertical;
             transition: all 0.3s ease;
+            line-height: 1.6;
         }
         
         textarea:focus {
@@ -108,8 +111,8 @@
         .format-hint {
             color: #64748b;
             font-size: 0.8rem;
-            margin-top: 8px;
-            padding: 10px 14px;
+            margin-top: 10px;
+            padding: 12px 16px;
             background: rgba(255,255,255,0.04);
             border-radius: 8px;
             border: 1px dashed rgba(255,255,255,0.06);
@@ -205,6 +208,7 @@
             border-radius: 8px;
             flex: 1;
             min-width: 150px;
+            word-break: break-word;
         }
         
         .status.success {
@@ -298,6 +302,8 @@
             background: rgba(0,0,0,0.2);
             border-radius: 6px;
             display: none;
+            max-height: 150px;
+            overflow-y: auto;
         }
         
         .email-item .preview.show {
@@ -345,34 +351,6 @@
         .empty-state .icon {
             font-size: 3rem;
             margin-bottom: 10px;
-        }
-        
-        .saved-creds {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        
-        .saved-creds-item {
-            background: rgba(255,255,255,0.06);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            color: #94a3b8;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.06);
-            transition: all 0.3s ease;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        .saved-creds-item:hover {
-            background: rgba(168, 85, 247, 0.15);
-            border-color: #7c3aed;
-            color: #fff;
         }
         
         .footer {
@@ -500,14 +478,17 @@
                 });
                 
                 const data = await res.json();
+                console.log('Response:', data);
                 
                 if (data.error) {
                     setStatus(`❌ ${data.error}`, 'error');
                     container.innerHTML = `
                         <div class="empty-state">
                             <div class="icon">⚠️</div>
-                            <p>${data.error}</p>
-                            <p style="font-size:0.85rem;color:#475569;">সঠিক ফরম্যাটে ক্রেডেনশিয়াল দিন</p>
+                            <p style="color:#f87171;">${data.error}</p>
+                            <p style="font-size:0.85rem;color:#475569;margin-top:8px;">
+                                💡 টিপ: শুধু <code style="color:#c084fc;">email:password</code> দিয়ে চেষ্টা করুন
+                            </p>
                         </div>
                     `;
                     userBar.style.display = 'none';
@@ -533,15 +514,12 @@
                     renderEmails(data.emails || []);
                     setStatus(`✅ ${data.total}টি ইমেইল পাওয়া গেছে (${data.user})`, 'success');
                     
-                    // ক্রেডেনশিয়াল সেভ করুন
-                    saveCredential(credential);
-                    
                 } else {
                     setStatus('❌ কোনো ইমেইল পাওয়া যায়নি', 'error');
                 }
                 
             } catch(e) {
-                setStatus('❌ সার্ভার কানেক্ট করতে পারেনি', 'error');
+                setStatus('❌ সার্ভার কানেক্ট করতে পারেনি: ' + e.message, 'error');
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="icon">🔌</div>
@@ -634,21 +612,19 @@
             }
         }
         
-        // ============= ক্রেডেনশিয়াল সেভ =============
-        function saveCredential(cred) {
-            let saved = JSON.parse(localStorage.getItem('savedCreds') || '[]');
-            saved = saved.filter(c => c !== cred);
-            saved.unshift(cred);
-            if (saved.length > 5) saved = saved.slice(0, 5);
-            localStorage.setItem('savedCreds', JSON.stringify(saved));
-        }
-        
-        // ============= এন্টার কী =============
+        // ============= এন্টার কী (Ctrl+Enter) =============
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
                 fetchWithCred();
             }
         });
+        
+        // পেজ লোড হলে অটো ফেচ
+        window.onload = function() {
+            // প্রথম বার অটো চেষ্টা
+            setTimeout(fetchWithCred, 1000);
+        }
     </script>
 </body>
 </html>
