@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📧 Email OTP Reader</title>
+    <title>📧 Hotmail007 - Email OTP Reader</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -13,23 +13,27 @@
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 950px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; }
         
         .header {
             background: linear-gradient(135deg, #1a1a3e, #2d1b69);
-            padding: 25px;
+            padding: 25px 30px;
             border-radius: 16px;
             margin-bottom: 20px;
-            text-align: center;
             border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .header h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             background: linear-gradient(90deg, #00d2ff, #a855f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .header p { color: #94a3b8; margin-top: 4px; }
+        .header p { color: #94a3b8; font-size: 0.9rem; }
         .badge {
             display: inline-block;
             background: rgba(168, 85, 247, 0.2);
@@ -37,7 +41,6 @@
             padding: 4px 14px;
             border-radius: 20px;
             font-size: 0.8rem;
-            margin-top: 6px;
             border: 1px solid rgba(168, 85, 247, 0.2);
         }
         
@@ -50,7 +53,7 @@
         }
         .card-title {
             color: #e2e8f0;
-            font-size: 1.05rem;
+            font-size: 1rem;
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -63,9 +66,18 @@
             font-weight: normal;
         }
         
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 640px) {
+            .row { grid-template-columns: 1fr; }
+        }
+        
         textarea {
             width: 100%;
-            min-height: 100px;
+            min-height: 80px;
             padding: 12px 14px;
             border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.1);
@@ -84,37 +96,27 @@
         }
         textarea::placeholder { color: #475569; }
         
-        .format-hint {
-            color: #64748b;
-            font-size: 0.8rem;
-            margin-top: 8px;
+        input[type="text"], input[type="number"] {
             padding: 10px 14px;
-            background: rgba(255,255,255,0.04);
             border-radius: 8px;
-            border: 1px dashed rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            width: 100%;
         }
-        .format-hint code {
-            color: #c084fc;
-            background: rgba(168, 85, 247, 0.1);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            word-break: break-all;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-top: 14px;
+        input:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
         }
         
         .btn {
-            padding: 12px 28px;
+            padding: 10px 24px;
             border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -128,7 +130,7 @@
         }
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
         }
         .btn-success {
             background: linear-gradient(135deg, #059669, #10b981);
@@ -136,7 +138,11 @@
         }
         .btn-success:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: #fff;
         }
         .btn-outline {
             background: transparent;
@@ -148,21 +154,15 @@
             border-color: #7c3aed;
             color: #fff;
         }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+        .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
         
         .status {
             color: #94a3b8;
-            font-size: 0.9rem;
-            padding: 8px 14px;
+            font-size: 0.85rem;
+            padding: 6px 12px;
             background: rgba(255,255,255,0.04);
-            border-radius: 8px;
-            flex: 1;
-            min-width: 150px;
+            border-radius: 6px;
             word-break: break-word;
         }
         .status.success { color: #34d399; }
@@ -170,44 +170,23 @@
         .status.info { color: #60a5fa; }
         .status.warning { color: #fbbf24; }
         
-        .user-bar {
+        .balance-box {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 20px;
             flex-wrap: wrap;
-            gap: 10px;
-            padding: 10px 16px;
+            padding: 12px 16px;
             background: rgba(168, 85, 247, 0.08);
             border-radius: 10px;
             border: 1px solid rgba(168, 85, 247, 0.1);
-            margin-top: 12px;
         }
-        .user-bar .user-name { color: #c084fc; font-weight: 600; }
-        .user-bar .user-email { color: #94a3b8; font-size: 0.85rem; }
-        .user-bar .count { color: #34d399; font-size: 0.85rem; }
-        
-        .token-refresh-info {
-            background: rgba(251, 191, 36, 0.1);
-            color: #fbbf24;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            border: 1px solid rgba(251, 191, 36, 0.1);
+        .balance-item {
+            display: flex;
+            flex-direction: column;
         }
-        
-        .new-cred-box {
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            padding: 10px 12px;
-            border-radius: 8px;
-            margin-top: 8px;
-            font-size: 0.7rem;
-            font-family: monospace;
-            color: #94a3b8;
-            word-break: break-all;
-            max-height: 60px;
-            overflow-y: auto;
-        }
+        .balance-item .label { color: #64748b; font-size: 0.75rem; }
+        .balance-item .value { color: #c084fc; font-size: 1.2rem; font-weight: 700; }
+        .balance-item .value.green { color: #34d399; }
+        .balance-item .value.gold { color: #fbbf24; }
         
         .email-item {
             background: rgba(255,255,255,0.04);
@@ -224,15 +203,15 @@
         .email-item .otp-box {
             background: rgba(168, 85, 247, 0.15);
             color: #c084fc;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
-            padding: 2px 16px;
+            padding: 2px 14px;
             border-radius: 8px;
             display: inline-block;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             border: 1px solid rgba(168, 85, 247, 0.2);
         }
-        .email-item .from { color: #60a5fa; font-weight: 600; font-size: 0.95rem; }
+        .email-item .from { color: #60a5fa; font-weight: 600; }
         .email-item .subject { color: #e2e8f0; margin: 4px 0; }
         .email-item .time { color: #64748b; font-size: 0.8rem; }
         .email-item .preview {
@@ -243,6 +222,8 @@
             background: rgba(0,0,0,0.2);
             border-radius: 6px;
             display: none;
+            max-height: 150px;
+            overflow-y: auto;
         }
         .email-item .preview.show { display: block; }
         .toggle-preview {
@@ -277,32 +258,6 @@
         }
         .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
         
-        .saved-creds {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        .saved-creds-item {
-            background: rgba(255,255,255,0.06);
-            padding: 5px 12px;
-            border-radius: 16px;
-            font-size: 0.7rem;
-            color: #94a3b8;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.06);
-            transition: all 0.3s ease;
-            max-width: 180px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .saved-creds-item:hover {
-            background: rgba(168, 85, 247, 0.15);
-            border-color: #7c3aed;
-            color: #fff;
-        }
-        
         .footer {
             text-align: center;
             color: #475569;
@@ -312,275 +267,317 @@
             border-top: 1px solid rgba(255,255,255,0.05);
         }
         
-        @media (max-width: 640px) {
-            .header h1 { font-size: 1.5rem; }
-            .controls { flex-direction: column; }
-            .controls .btn { width: 100%; justify-content: center; }
-            .user-bar { flex-direction: column; text-align: center; }
-        }
+        .flex { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .flex-1 { flex: 1; min-width: 150px; }
+        .mt-10 { margin-top: 10px; }
+        .mt-15 { margin-top: 15px; }
+        .mb-10 { margin-bottom: 10px; }
+        .gap-10 { gap: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <h1>📧 Email OTP Reader</h1>
-            <p>ক্রেডেনশিয়াল পেস্ট করুন → বাকি সব অটোমেটিক!</p>
-            <span class="badge">🔄 সম্পূর্ণ অটোমেটিক</span>
-            <span class="badge" style="margin-left:8px;">🔒 নিজের অ্যাকাউন্ট</span>
+            <div>
+                <h1>📧 Hotmail007 OTP Reader</h1>
+                <p>ক্রেডেনশিয়াল পেস্ট করুন → ইমেইল + OTP দেখুন</p>
+            </div>
+            <div>
+                <span class="badge">🔑 API Connected</span>
+                <span class="badge" style="margin-left:8px;">⚡ Real-time</span>
+            </div>
         </div>
-        
+
+        <!-- Balance & Stats -->
+        <div class="card">
+            <div class="flex" style="justify-content:space-between;flex-wrap:wrap;">
+                <div class="card-title" style="margin-bottom:0;">
+                    💰 ব্যালেন্স & ইনফো
+                    <small>আপনার API অ্যাকাউন্ট</small>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="loadBalance()">🔄 রিফ্রেশ</button>
+            </div>
+            <div id="balanceInfo" class="balance-box mt-10">
+                <div class="balance-item">
+                    <span class="label">ব্যালেন্স</span>
+                    <span class="value" id="balanceAmount">—</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">VIP লেভেল</span>
+                    <span class="value gold" id="vipLevel">—</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">ডিসকাউন্ট</span>
+                    <span class="value green" id="discountRate">—</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">মোট ডিপোজিট</span>
+                    <span class="value" id="totalDeposit">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Input -->
         <div class="card">
             <div class="card-title">
                 🔑 ক্রেডেনশিয়াল স্ট্রিং
-                <small>(পেস্ট করুন, বাকি সব নিজেই করবে)</small>
+                <small>(email:password:access_token:refresh_token)</small>
             </div>
             
-            <textarea id="credInput" placeholder="এখানে আপনার ক্রেডেনশিয়াল পেস্ট করুন...">EarlineLymon4897@outlook.com:gEknRCSodJ:M.C529_SN1.0.U.MsaArtifacts.-CtBYsn6Ao!RIwe70umXWdqEcG4oCu8Mxz*buwvle9zlQ9AlzJrmW2DR49FG!qf2oFwrpLHWfbMOuJZawQvLxrYn5PRKcIPl4jNEzYCO6GS3tubsB!IW90H00skkRUNloHblilUBgpXl6Z!KZ1KdtddnvwG2uiFEXVu*3OCrkkXJlGEtilSicI7NDMgMn94E3X8dLhMNz*mmkCuORHSGwTTNkggd6G*3TC3uW3d*aaZTBWexRwvyLdKrT0LkxVfWf!TAcasre4RNBYQNIO9*44NYH7!kN7IPvtgKQ!KGh3Cme938YhyNfsl4hNTB9VO!qRoF5EaR8wu54VDbyrdCbg0UfKF4TbfO3*s5EH3wBhU4zprSjDMfoyB*IoldcRuRenVN017R4w4uIDYiZqdB9Dy0$:8b4ba9dd-3ea5-4e5f-86f1-ddba2230dcf2</textarea>
+            <textarea id="credInput" placeholder="এখানে আপনার ক্রেডেনশিয়াল পেস্ট করুন...">UnTempest26@outlook.com:0daJpj8haw1:M.C545_BL2.0.U.MsaArtifacts.-Chk68JvtmKMDe92LdyW9VB3Bc3imQ3pK2C573dCGi4TPwn1xU7rJxvIXxOdMVW!KD8PX4H6R!W3DVpcIbIAVVIoY05UOI7SKxtlJWL5O5qtSPFvSZ97F1v*K8RXROXDw1kpW7lBZKEKOutLMMVeexMDOWn2Ml5Cs3meAVnl0Y3qVKmXf3rtYyu8*uJ1zitlOISk5xP17ZMjs6sbQ5WGffEelf3FFnTMvKBVgCc0IzNlIBmidrvIiwq6C9fNgf0UecNNE9w1EjcMwqUuPfEIQ8ehs1s87Kyn3DYTx4BO8YQwREONK86BNhC*kyaduKM2hOxil837Ebrz7bmmlfxOzlPzd7nhRlvVbdIbKkpWicDYDe778IWY53NsK0qiO7r119ONQLjtYJMG5sjn7UaPxYFs$:8b4ba9dd-3ea5-4e5f-86f1-ddba2230dcf2</textarea>
             
-            <div class="format-hint">
-                📝 <strong>ফরম্যাট:</strong><br>
-                <code>email@outlook.com:password:access_token:refresh_token</code>
-                <br><br>
-                🔄 <strong>অটোমেটিক যা হবে:</strong><br>
-                1️⃣ access_token দিয়ে চেষ্টা → 2️⃣ না হলে refresh_token → 3️⃣ না হলে password
-            </div>
-            
-            <div class="controls">
-                <button class="btn btn-primary" onclick="fetchEmails()">🚀 ইনবক্স দেখুন (অটোমেটিক)</button>
+            <div class="flex mt-10">
+                <button class="btn btn-primary" onclick="fetchEmails()">🚀 ইমেইল দেখুন</button>
+                <button class="btn btn-success" onclick="fetchEmailsLegacy()">📜 লেগ্যাসি API</button>
                 <button class="btn btn-outline btn-sm" onclick="clearAll()">🗑️ ক্লিয়ার</button>
                 <span class="status" id="status">✅ প্রস্তুত</span>
             </div>
             
-            <div style="margin-top:12px;">
-                <span style="color:#64748b;font-size:0.8rem;">📂 সংরক্ষিত: </span>
-                <div class="saved-creds" id="savedCreds"></div>
+            <div class="flex mt-10">
+                <div class="flex-1">
+                    <label style="color:#64748b;font-size:0.8rem;">📁 ফোল্ডার</label>
+                    <select id="folderSelect" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:#e2e8f0;">
+                        <option value="inbox">📥 Inbox</option>
+                        <option value="junkemail">📪 Junk Email</option>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label style="color:#64748b;font-size:0.8rem;">📊 ইমেইল সংখ্যা</label>
+                    <input type="number" id="limitInput" value="5" min="1" max="20">
+                </div>
             </div>
         </div>
-        
-        <div id="userBar" style="display:none;" class="user-bar">
-            <span class="user-name" id="userName">👤</span>
-            <span class="user-email" id="userEmail">📧</span>
-            <span class="count" id="emailCount">0টি ইমেইল</span>
-            <span id="tokenStatus" style="color:#fbbf24;font-size:0.8rem;"></span>
-        </div>
-        
-        <div id="newCredSection" style="display:none;" class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                <span style="color:#34d399;font-weight:600;">✅ নতুন ক্রেডেনশিয়াল (কপি করে রাখুন):</span>
-                <button onclick="copyNewCred()" class="btn btn-sm" style="background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.2);padding:4px 12px;border-radius:4px;cursor:pointer;">📋 কপি</button>
+
+        <!-- User Info -->
+        <div id="userBar" style="display:none;" class="card" style="padding:12px 16px;">
+            <div class="flex" style="justify-content:space-between;flex-wrap:wrap;">
+                <span style="color:#c084fc;font-weight:600;" id="userEmailDisplay">📧</span>
+                <span style="color:#34d399;" id="emailCountDisplay">0টি ইমেইল</span>
+                <span style="color:#fbbf24;font-size:0.85rem;" id="apiMethod">🔵 New API</span>
             </div>
-            <div class="new-cred-box" id="newCredBox"></div>
         </div>
-        
+
+        <!-- Email List -->
         <div class="card" style="padding:16px;">
             <div id="emailContainer">
                 <div class="empty-state">
                     <div class="icon">📭</div>
                     <p>কোনো ইমেইল নেই</p>
-                    <p style="font-size:0.85rem;color:#475569;">ক্রেডেনশিয়াল পেস্ট করে "ইনবক্স দেখুন" ক্লিক করুন</p>
+                    <p style="font-size:0.85rem;color:#475569;">ক্রেডেনশিয়াল পেস্ট করে "ইমেইল দেখুন" ক্লিক করুন</p>
                 </div>
             </div>
         </div>
-        
+
         <div class="footer">
-            ⚡ Microsoft Graph API | 🔄 সম্পূর্ণ অটোমেটিক | আপনার নিজের ডেটা নিরাপদে রাখুন
+            ⚡ Hotmail007 API | Real-time Email OTP Reader | আপনার নিজের ডেটা নিরাপদে রাখুন
         </div>
     </div>
-    
+
     <script>
         const credInput = document.getElementById('credInput');
         const statusEl = document.getElementById('status');
         const container = document.getElementById('emailContainer');
         const userBar = document.getElementById('userBar');
-        const userName = document.getElementById('userName');
-        const userEmail = document.getElementById('userEmail');
-        const emailCount = document.getElementById('emailCount');
-        const tokenStatus = document.getElementById('tokenStatus');
-        const newCredSection = document.getElementById('newCredSection');
-        const newCredBox = document.getElementById('newCredBox');
-        const savedCredsDiv = document.getElementById('savedCreds');
-        
-        function loadSavedCreds() {
-            const saved = localStorage.getItem('savedCreds');
-            if (saved) {
-                try {
-                    const creds = JSON.parse(saved);
-                    renderSavedCreds(creds);
-                    return creds;
-                } catch(e) {}
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const emailCountDisplay = document.getElementById('emailCountDisplay');
+        const apiMethod = document.getElementById('apiMethod');
+        const folderSelect = document.getElementById('folderSelect');
+        const limitInput = document.getElementById('limitInput');
+
+        // ============= ব্যালেন্স লোড =============
+        async function loadBalance() {
+            try {
+                const res = await fetch('/api/balance');
+                const data = await res.json();
+                if (data.success && data.data) {
+                    document.getElementById('balanceAmount').textContent = data.data.balance || '0';
+                    document.getElementById('vipLevel').textContent = data.data.vipName || `Level ${data.data.vipLevel || 0}`;
+                    document.getElementById('discountRate').textContent = data.data.discountRate ? `${data.data.discountRate}%` : '—';
+                    document.getElementById('totalDeposit').textContent = data.data.totalDeposit || '0';
+                }
+            } catch(e) {
+                console.log('Balance load error:', e);
             }
-            return [];
         }
-        
-        function renderSavedCreds(creds) {
-            savedCredsDiv.innerHTML = '';
-            if (creds.length === 0) {
-                savedCredsDiv.innerHTML = '<span style="color:#475569;font-size:0.8rem;">কোনো ক্রেডেনশিয়াল সেভ নেই</span>';
-                return;
-            }
-            creds.forEach((cred) => {
-                const el = document.createElement('span');
-                el.className = 'saved-creds-item';
-                const email = cred.split(':')[0] || 'Unknown';
-                el.textContent = email;
-                el.title = 'ক্লিক করে লোড করুন';
-                el.onclick = () => {
-                    credInput.value = cred;
-                    fetchEmails();
-                };
-                savedCredsDiv.appendChild(el);
-            });
-        }
-        
-        function saveCredential(cred) {
-            let creds = loadSavedCreds();
-            creds = creds.filter(c => c !== cred);
-            creds.unshift(cred);
-            if (creds.length > 5) creds = creds.slice(0, 5);
-            localStorage.setItem('savedCreds', JSON.stringify(creds));
-            renderSavedCreds(creds);
-        }
-        
+
+        // ============= নতুন API দিয়ে ইমেইল ফেচ =============
         async function fetchEmails() {
             const credential = credInput.value.trim();
             if (!credential) {
                 setStatus('⚠️ ক্রেডেনশিয়াল দিন', 'error');
                 return;
             }
-            
+
             const btn = document.querySelector('.btn-primary');
             btn.disabled = true;
-            btn.textContent = '⏳ প্রসেসিং...';
+            btn.textContent = '⏳ লোড...';
             
-            setStatus('🔄 access_token চেক করা হচ্ছে...', 'info');
-            container.innerHTML = `<div class="loading"><div class="spinner"></div><p>অটোমেটিক প্রসেসিং...</p></div>`;
-            newCredSection.style.display = 'none';
+            setStatus('⏳ ইমেইল পড়া হচ্ছে...', 'info');
+            container.innerHTML = `<div class="loading"><div class="spinner"></div><p>API তে রিকোয়েস্ট পাঠানো হচ্ছে...</p></div>`;
             userBar.style.display = 'none';
-            tokenStatus.textContent = '';
-            
+
             try {
-                const res = await fetch('/api/fetch', {
+                const limit = parseInt(limitInput.value) || 5;
+                const folder = folderSelect.value;
+                
+                const res = await fetch('/api/mail/latest', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ credential, limit: 5 })
+                    body: JSON.stringify({ 
+                        account: credential, 
+                        folder: folder,
+                        limit: limit
+                    })
                 });
                 
                 const data = await res.json();
                 console.log('Response:', data);
-                
+
                 if (data.error) {
                     setStatus(`❌ ${data.error}`, 'error');
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="icon">⚠️</div>
-                            <p style="color:#f87171;">${data.error}</p>
-                        </div>
-                    `;
+                    container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p style="color:#f87171;">${data.error}</p></div>`;
                     return;
                 }
-                
+
                 if (data.success) {
-                    saveCredential(credential);
-                    
-                    userBar.style.display = 'flex';
-                    userName.textContent = `👤 ${data.user}`;
-                    userEmail.textContent = `📧 ${data.email}`;
-                    emailCount.textContent = `${data.total}টি ইমেইল`;
-                    
-                    if (data.token_refreshed) {
-                        tokenStatus.textContent = '🔄 নতুন টোকেন তৈরি হয়েছে!';
-                        tokenStatus.style.color = '#34d399';
-                    } else {
-                        tokenStatus.textContent = '✅ টোকেন বৈধ';
-                        tokenStatus.style.color = '#34d399';
-                    }
-                    
-                    if (data.new_credential) {
-                        newCredBox.textContent = data.new_credential;
-                        newCredSection.style.display = 'block';
-                    }
-                    
+                    userBar.style.display = 'block';
+                    userEmailDisplay.textContent = `📧 ${data.account || 'Unknown'}`;
+                    emailCountDisplay.textContent = `${data.total || 0}টি ইমেইল`;
+                    apiMethod.textContent = '🟢 New API';
+                    apiMethod.style.color = '#34d399';
+
                     renderEmails(data.emails || []);
-                    setStatus(`✅ ${data.total}টি ইমেইল পাওয়া গেছে (${data.user})`, 'success');
+                    setStatus(`✅ ${data.total || 0}টি ইমেইল পাওয়া গেছে`, 'success');
                 }
             } catch(e) {
                 setStatus('❌ Error: ' + e.message, 'error');
                 container.innerHTML = `<div class="empty-state"><div class="icon">🔌</div><p>সার্ভার অফলাইন</p></div>`;
             }
-            
+
             btn.disabled = false;
-            btn.textContent = '🚀 ইনবক্স দেখুন (অটোমেটিক)';
+            btn.textContent = '🚀 ইমেইল দেখুন';
         }
-        
+
+        // ============= লেগ্যাসি API =============
+        async function fetchEmailsLegacy() {
+            const credential = credInput.value.trim();
+            if (!credential) {
+                setStatus('⚠️ ক্রেডেনশিয়াল দিন', 'error');
+                return;
+            }
+
+            const btn = document.querySelector('.btn-success');
+            btn.disabled = true;
+            btn.textContent = '⏳ লোড...';
+            
+            setStatus('⏳ লেগ্যাসি API তে রিকোয়েস্ট...', 'info');
+            container.innerHTML = `<div class="loading"><div class="spinner"></div><p>লেগ্যাসি API তে রিকোয়েস্ট...</p></div>`;
+            userBar.style.display = 'none';
+
+            try {
+                const folder = folderSelect.value;
+                
+                const res = await fetch('/api/mail/legacy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        account: credential, 
+                        folder: folder
+                    })
+                });
+                
+                const data = await res.json();
+
+                if (data.error) {
+                    setStatus(`❌ ${data.error}`, 'error');
+                    container.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p style="color:#f87171;">${data.error}</p></div>`;
+                    return;
+                }
+
+                if (data.success && data.data) {
+                    userBar.style.display = 'block';
+                    userEmailDisplay.textContent = `📧 ${credential.split(':')[0] || 'Unknown'}`;
+                    emailCountDisplay.textContent = '১টি ইমেইল';
+                    apiMethod.textContent = '🟡 Legacy API';
+                    apiMethod.style.color = '#fbbf24';
+
+                    const email = [data.data];
+                    renderEmails(email);
+                    setStatus(`✅ ১টি ইমেইল পাওয়া গেছে`, 'success');
+                }
+            } catch(e) {
+                setStatus('❌ Error: ' + e.message, 'error');
+                container.innerHTML = `<div class="empty-state"><div class="icon">🔌</div><p>সার্ভার অফলাইন</p></div>`;
+            }
+
+            btn.disabled = false;
+            btn.textContent = '📜 লেগ্যাসি API';
+        }
+
+        // ============= ইমেইল রেন্ডার =============
         function renderEmails(emails) {
             if (!emails || emails.length === 0) {
                 container.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>কোনো ইমেইল নেই</p></div>`;
                 return;
             }
-            
+
             let html = '';
             emails.forEach((email, index) => {
                 const otpDisplay = email.has_otp
                     ? `<span class="otp-box">${email.otp}</span>`
                     : `<span style="color:#64748b;">🔴 OTP খুঁজে পাওয়া যায়নি</span>`;
                 
+                const textContent = email.text || email.html || '';
+                
                 html += `
                     <div class="email-item">
                         <div class="from">📤 ${escapeHtml(email.from)}</div>
                         <div class="subject">📌 ${escapeHtml(email.subject)}</div>
                         <div style="margin:8px 0;">${otpDisplay}</div>
-                        <div class="time">🕐 ${email.received}</div>
+                        <div class="time">🕐 ${escapeHtml(email.receivedAt || 'N/A')}</div>
                         <span class="toggle-preview" onclick="togglePreview(${index})">👁️ প্রিভিউ দেখুন</span>
-                        <div class="preview" id="preview-${index}">${escapeHtml(email.preview || 'কোনো প্রিভিউ নেই')}</div>
+                        <div class="preview" id="preview-${index}">${escapeHtml(textContent || 'কোনো কন্টেন্ট নেই')}</div>
                     </div>
                 `;
             });
             container.innerHTML = html;
         }
-        
+
         function togglePreview(index) {
             const el = document.getElementById(`preview-${index}`);
             if (el) el.classList.toggle('show');
         }
-        
+
         function clearAll() {
             container.innerHTML = `<div class="empty-state"><div class="icon">🗑️</div><p>ক্লিয়ার করা হয়েছে</p></div>`;
             userBar.style.display = 'none';
-            newCredSection.style.display = 'none';
-            tokenStatus.textContent = '';
             setStatus('🗑️ ক্লিয়ার করা হয়েছে', '');
         }
-        
-        function copyNewCred() {
-            const text = newCredBox.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = event.target;
-                btn.textContent = '✅ কপি!';
-                setTimeout(() => { btn.textContent = '📋 কপি'; }, 2000);
-            });
-        }
-        
+
         function setStatus(msg, type) {
             statusEl.textContent = msg;
             statusEl.className = 'status';
             if (type) statusEl.classList.add(type);
         }
-        
+
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
+        // ============= কীবোর্ড শর্টকাট =============
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
                 fetchEmails();
             }
         });
-        
-        loadSavedCreds();
+
+        // ============= পেজ লোড =============
+        loadBalance();
         setTimeout(fetchEmails, 800);
     </script>
 </body>
