@@ -4,9 +4,14 @@ import requests
 import re
 import json
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 CORS(app)
+
+# ============= কনফিগারেশন =============
+API_KEY = os.environ.get('API_KEY', 'your_api_key_here')
+BASE_URL = os.environ.get('BASE_URL', 'https://gapi.hotmail007.com')
 
 # ============= OTP এক্সট্র্যাক্ট =============
 def extract_otp(text):
@@ -27,222 +32,166 @@ def extract_otp(text):
             return match.group(1).replace(' ', '').replace('-', '')
     return None
 
-# ============= টোকেন দিয়ে ইমেইল ফেচ =============
-def fetch_emails_with_token(access_token, limit=5):
+# ============= API কল ফাংশন =============
+def call_api(endpoint, params=None):
+    """Hotmail007 API তে কল করে"""
+    url = f"{BASE_URL}{endpoint}"
+    if params is None:
+        params = {}
+    if 'clientKey' not in params:
+        params['clientKey'] = API_KEY
+    
     try:
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Accept": "application/json"
-        }
+        response = requests.get(url, params=params, timeout=30)
+        return response.json()
+    except Exception as e:
+        return {'error': str(e), 'success': False}
+
+# ============= ব্যালেন্স চেক =============
+@app.route('/api/balance')
+def get_balance():
+    result = call_api('/open/balance')
+    return jsonify(result)
+
+# ============= স্টক চেক =============
+@app.route('/api/stock')
+def get_stock():
+    product_id = request.args.get('productId')
+    params = {}
+    if product_id:
+        params['productId'] = product_id
+    result = call_api('/open/stock', params)
+    return jsonify(result)
+
+# ============= ইমেইল ফেচ (সরাসরি API দিয়ে) =============
+@app.route('/api/mail/latest', methods=['POST'])
+def get_latest_mail():
+    data = request.json
+    account = data.get('account', '').strip()
+    folder = data.get('folder', 'inbox')
+    limit = data.get('limit', 5)
+    start_timestamp = data.get('start_timestamp')
+    
+    if not account:
+        return jsonify({'error': 'অ্যাকাউন্ট দিন', 'success': False})
+    
+    # একাধিক ইমেইল পেতে বারবার কল
+    emails = []
+    params = {
+        'account': account,
+        'folder': folder
+    }
+    if start_timestamp:
+        params['start_timestamp'] = start_timestamp
+    
+    # API তে কয়েকবার কল করে ইমেইল সংগ্রহ
+    for i in range(limit):
+        result = call_api('/open/mail/latest', params)
         
-        user_res = requests.get("https://graph.microsoft.com/v1.0/me", headers=headers)
-        if user_res.status_code != 200:
-            return {
-                "error": f"টোকেন বৈধ নয় (Status: {user_res.status_code})", 
-                "status": user_res.status_code,
-                "success": False
-            }
-        
-        user_data = user_res.json()
-        user_name = user_data.get("displayName") or user_data.get("userPrincipalName", "Unknown")
-        email = user_data.get("userPrincipalName") or user_data.get("mail", "Unknown")
-        
-        url = "https://graph.microsoft.com/v1.0/me/mailfolders/inbox/messages"
-        params = {
-            "$top": limit,
-            "$select": "subject,bodyPreview,from,receivedDateTime",
-            "$orderby": "receivedDateTime desc"
-        }
-        
-        response = requests.get(url, headers=headers, params=params)
-        
-        if response.status_code != 200:
-            return {
-                "error": f"ইমেইল ফেচ করতে পারেনি (Status: {response.status_code})",
-                "status": response.status_code,
-                "success": False
-            }
-        
-        emails = response.json().get("value", [])
-        
-        result = []
-        for email_item in emails:
-            subject = email_item.get('subject', '')
-            preview = email_item.get('bodyPreview', '')
-            from_addr = email_item.get('from', {}).get('emailAddress', {}).get('address', 'Unknown')
-            received = email_item.get('receivedDateTime', '')
-            
-            full_text = subject + " " + preview
+        if result.get('success') and result.get('data'):
+            email_data = result['data']
+            # OTP এক্সট্র্যাক্ট
+            full_text = email_data.get('subject', '') + " " + email_data.get('text', '') + " " + email_data.get('html', '')
             otp = extract_otp(full_text)
             
-            try:
-                dt = datetime.fromisoformat(received.replace('Z', '+00:00'))
-                time_str = dt.strftime('%d %b %Y, %I:%M %p')
-            except:
-                time_str = received
-            
-            result.append({
-                'from': from_addr,
-                'subject': subject,
-                'preview': preview[:300] if preview else '',
-                'received': time_str,
+            emails.append({
+                'from': email_data.get('from', 'Unknown'),
+                'subject': email_data.get('subject', 'No Subject'),
+                'text': email_data.get('text', '')[:300],
+                'html': email_data.get('html', ''),
+                'receivedAt': email_data.get('receivedAt', ''),
                 'otp': otp if otp else None,
                 'has_otp': otp is not None
             })
-        
-        return {
-            'success': True,
-            'user': user_name,
-            'email': email,
-            'total': len(result),
-            'emails': result
-        }
-        
-    except Exception as e:
-        return {"error": str(e), "success": False}
-
-# ============= Refresh Token দিয়ে নতুন টোকেন =============
-def refresh_access_token(refresh_token):
-    try:
-        url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
-        data = {
-            "client_id": "00000000482c6b4a",
-            "refresh_token": refresh_token,
-            "grant_type": "refresh_token"
-        }
-        response = requests.post(url, data=data)
-        
-        if response.status_code == 200:
-            result = response.json()
-            return {
-                'success': True,
-                'access_token': result.get('access_token'),
-                'refresh_token': result.get('refresh_token')
-            }
-        return {'success': False, 'error': response.text}
-    except Exception as e:
-        return {'success': False, 'error': str(e)}
-
-# ============= পাসওয়ার্ড দিয়ে লগইন =============
-def login_with_password(email, password):
-    try:
-        url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
-        data = {
-            "client_id": "00000000482c6b4a",
-            "scope": "https://outlook.office.com/Mail.Read offline_access",
-            "username": email,
-            "password": password,
-            "grant_type": "password"
-        }
-        response = requests.post(url, data=data)
-        
-        if response.status_code == 200:
-            result = response.json()
-            return {
-                'success': True,
-                'access_token': result.get('access_token'),
-                'refresh_token': result.get('refresh_token')
-            }
-        return {'success': False, 'error': response.text}
-    except Exception as e:
-        return {'success': False, 'error': str(e)}
-
-# ============= ক্রেডেনশিয়াল পার্স =============
-def parse_credential(cred_string):
-    parts = cred_string.strip().split(':')
+            
+            # পরবর্তী ইমেইলের জন্য start_timestamp আপডেট
+            if email_data.get('receivedAt'):
+                try:
+                    dt = datetime.fromisoformat(email_data['receivedAt'].replace('Z', '+00:00'))
+                    params['start_timestamp'] = int(dt.timestamp())
+                except:
+                    pass
+        else:
+            break
     
-    if len(parts) >= 4:
-        return {
-            'email': parts[0],
-            'password': parts[1],
-            'access_token': parts[2],
-            'refresh_token': parts[3]
-        }
-    elif len(parts) == 3:
-        return {
-            'email': parts[0],
-            'password': parts[1],
-            'access_token': parts[2],
-            'refresh_token': None
-        }
-    elif len(parts) == 2:
-        return {
-            'email': parts[0],
-            'password': parts[1],
-            'access_token': None,
-            'refresh_token': None
-        }
-    else:
-        return None
+    return jsonify({
+        'success': True,
+        'total': len(emails),
+        'emails': emails,
+        'account': account
+    })
 
-# ============= API - সম্পূর্ণ অটোমেটিক =============
-@app.route('/api/fetch', methods=['POST'])
-def fetch_emails_api():
+# ============= অর্ডার লিস্ট =============
+@app.route('/api/orders')
+def get_orders():
+    page_num = request.args.get('pageNum', 1)
+    page_size = request.args.get('pageSize', 10)
+    status = request.args.get('status')
+    
+    params = {
+        'pageNum': page_num,
+        'pageSize': page_size
+    }
+    if status:
+        params['status'] = status
+    
+    result = call_api('/open/orders', params)
+    return jsonify(result)
+
+# ============= লেগ্যাসি ইমেইল ফেচ =============
+@app.route('/api/mail/legacy', methods=['POST'])
+def get_legacy_mail():
     data = request.json
-    credential = data.get('credential', '').strip()
-    limit = data.get('limit', 5)
+    account = data.get('account', '').strip()
+    folder = data.get('folder', 'inbox')
+    start_timestamp = data.get('start_timestamp')
     
-    if not credential:
-        return jsonify({'error': 'ক্রেডেনশিয়াল দিন'})
+    if not account:
+        return jsonify({'error': 'অ্যাকাউন্ট দিন', 'success': False})
     
-    parsed = parse_credential(credential)
-    if not parsed:
-        return jsonify({'error': 'ভুল ফরম্যাট'})
+    params = {
+        'clientKey': API_KEY,
+        'account': account,
+        'folder': folder
+    }
+    if start_timestamp:
+        params['start_timestamp'] = start_timestamp
     
-    email = parsed.get('email')
-    password = parsed.get('password')
-    access_token = parsed.get('access_token')
-    refresh_token = parsed.get('refresh_token')
-    
-    result = None
-    new_credential = None
-    
-    # ===== STEP 1: access_token দিয়ে চেষ্টা =====
-    if access_token:
-        print("🔄 Trying with access_token...")
-        result = fetch_emails_with_token(access_token, limit)
-        if result.get('success'):
-            print("✅ Access token worked!")
-            return jsonify(result)
-    
-    # ===== STEP 2: refresh_token দিয়ে নতুন টোকেন =====
-    if refresh_token and (not result or not result.get('success')):
-        print("🔄 Trying refresh_token...")
-        refresh_result = refresh_access_token(refresh_token)
-        if refresh_result.get('success'):
-            new_access = refresh_result.get('access_token')
-            new_refresh = refresh_result.get('refresh_token')
-            print("✅ New token obtained via refresh!")
+    try:
+        url = f"{BASE_URL}/v1/mail/getFirstMail"
+        response = requests.get(url, params=params, timeout=30)
+        result = response.json()
+        
+        if result.get('success') and result.get('data'):
+            email_data = result['data']
+            full_text = email_data.get('subject', '') + " " + email_data.get('text', '')
+            otp = extract_otp(full_text)
             
-            result = fetch_emails_with_token(new_access, limit)
-            if result.get('success'):
-                # নতুন ক্রেডেনশিয়াল তৈরি
-                new_credential = f"{email}:{password}:{new_access}:{new_refresh}"
-                result['new_credential'] = new_credential
-                result['token_refreshed'] = True
-                return jsonify(result)
-    
-    # ===== STEP 3: password দিয়ে লগইন =====
-    if password and (not result or not result.get('success')):
-        print("🔄 Trying login with password...")
-        login_result = login_with_password(email, password)
-        if login_result.get('success'):
-            new_access = login_result.get('access_token')
-            new_refresh = login_result.get('refresh_token')
-            print("✅ Login successful!")
-            
-            result = fetch_emails_with_token(new_access, limit)
-            if result.get('success'):
-                new_credential = f"{email}:{password}:{new_access}:{new_refresh}"
-                result['new_credential'] = new_credential
-                result['token_refreshed'] = True
-                return jsonify(result)
-    
-    # ===== সব ব্যর্থ =====
-    if result and result.get('error'):
+            result['data']['otp'] = otp
+            result['data']['has_otp'] = otp is not None
+        
         return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e), 'success': False})
+
+# ============= অ্যাকাউন্ট ক্রয় =============
+@app.route('/api/buy', methods=['POST'])
+def buy_accounts():
+    data = request.json
+    product_id = data.get('productId')
+    quantity = data.get('quantity', 1)
     
-    return jsonify({'error': 'লগইন করার কোন উপায় নেই। চেক করুন আপনার ক্রেডেনশিয়াল সঠিক কিনা।'})
+    if not product_id:
+        return jsonify({'error': 'productId দিন', 'success': False})
+    
+    params = {
+        'clientKey': API_KEY,
+        'productId': product_id,
+        'quantity': quantity
+    }
+    
+    result = call_api('/open/buy', params)
+    return jsonify(result)
 
 # ============= হোম পেজ =============
 @app.route('/')
@@ -253,16 +202,13 @@ def home():
 if __name__ == '__main__':
     print("""
     ╔══════════════════════════════════════════════════════════════════╗
-    ║   📧 Email OTP Reader - সম্পূর্ণ অটোমেটিক                      ║
+    ║   📧 Hotmail007 Email OTP Reader Panel                         ║
     ║   Server running at: http://localhost:5000                    ║
     ║                                                                 ║
-    ║   🔄 অটোমেটিক যা যা হবে:                                       ║
-    ║   1️⃣ access_token দিয়ে চেষ্টা                                ║
-    ║   2️⃣ না হলে refresh_token দিয়ে নতুন টোকেন                   ║
-    ║   3️⃣ না হলে password দিয়ে লগইন                              ║
-    ║   4️⃣ নতুন টোকেন পেলে দেখাবে + নতুন ক্রেডেনশিয়াল দেবে       ║
+    ║   🔑 API Key: {api_key[:20]}...                               ║
+    ║   📡 Base URL: {base_url}                                     ║
     ║                                                                 ║
     ║   ⚠️ শুধুমাত্র আপনার নিজের অ্যাকাউন্ট ব্যবহার করুন            ║
     ╚══════════════════════════════════════════════════════════════════╝
-    """)
+    """.format(api_key=API_KEY, base_url=BASE_URL))
     app.run(debug=True, host='0.0.0.0', port=5000)
