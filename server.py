@@ -3,8 +3,6 @@ from flask_cors import CORS
 import requests
 import re
 import json
-import base64
-from urllib.parse import urlparse
 
 app = Flask(__name__)
 CORS(app)
@@ -27,11 +25,6 @@ def extract_otp(text):
 
 # ============= ক্রেডেনশিয়াল পার্স =============
 def parse_credential(cred_string):
-    """
-    ফরম্যাট: email:password:access_token:refresh_token
-    অথবা: email:password
-    অথবা: email:access_token (পাসওয়ার্ড ছাড়া)
-    """
     parts = cred_string.strip().split(':')
     
     if len(parts) >= 4:
@@ -42,7 +35,6 @@ def parse_credential(cred_string):
             'refresh_token': parts[3]
         }
     elif len(parts) == 3:
-        # email:password:access_token (refresh_token নেই)
         return {
             'email': parts[0],
             'password': parts[1],
@@ -57,22 +49,6 @@ def parse_credential(cred_string):
             'refresh_token': None
         }
     else:
-        return None
-
-# ============= টোকেন রিফ্রেশ =============
-def refresh_access_token(refresh_token):
-    try:
-        url = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-        data = {
-            "client_id": "00000000482c6b4a",
-            "refresh_token": refresh_token,
-            "grant_type": "refresh_token"
-        }
-        res = requests.post(url, data=data)
-        if res.status_code == 200:
-            return res.json().get('access_token')
-        return None
-    except:
         return None
 
 # ============= টোকেন দিয়ে ইমেইল ফেচ =============
@@ -134,20 +110,33 @@ def fetch_emails_with_token(email, access_token):
     except Exception as e:
         return {"error": str(e)}
 
-# ============= পাসওয়ার্ড দিয়ে লগইন (এখন /organizations ব্যবহার করব) =============
-def login_with_password(email, password):
+# ============= Consumer (Outlook/Hotmail) লগইন =============
+def login_consumer(email, password):
+    """
+    Consumer অ্যাকাউন্টের জন্য (Outlook/Hotmail)
+    """
     try:
-        # /organizations এন্ডপয়েন্ট ব্যবহার করি
-        token_url = "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+        # Consumer এর জন্য OAuth2 endpoint
+        token_url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
+        
         token_data = {
-            "client_id": "00000000482c6b4a",
+            "client_id": "00000000482c6b4a",  # Outlook ডিফল্ট ক্লায়েন্ট
             "scope": "https://outlook.office.com/Mail.Read offline_access",
             "username": email,
             "password": password,
             "grant_type": "password"
         }
         
-        token_res = requests.post(token_url, data=token_data)
+        # Headers যোগ করি
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        
+        token_res = requests.post(token_url, data=token_data, headers=headers)
+        
+        # রেসপন্স প্রিন্ট করি (ডিবাগের জন্য)
+        print(f"Token Response Status: {token_res.status_code}")
+        print(f"Token Response: {token_res.text[:500]}")
         
         if token_res.status_code != 200:
             error_data = token_res.json()
@@ -161,9 +150,46 @@ def login_with_password(email, password):
         if not access_token:
             return {"error": "টোকেন পাওয়া যায়নি"}
         
+        # ইমেইল ফেচ
         result = fetch_emails_with_token(email, access_token)
         if result.get('success'):
             result['refresh_token'] = refresh_token
+        return result
+        
+    except Exception as e:
+        return {"error": str(e)}
+
+# ============= অল্টারনেটিভ: ROPC গ্রান্ট =============
+def login_consumer_ropc(email, password):
+    """
+    ROPC (Resource Owner Password Credentials) গ্রান্ট ব্যবহার
+    """
+    try:
+        token_url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
+        
+        token_data = {
+            "client_id": "00000000482c6b4a",
+            "scope": "https://outlook.office.com/Mail.Read https://outlook.office.com/User.Read offline_access",
+            "username": email,
+            "password": password,
+            "grant_type": "password",
+            "response_type": "token id_token"
+        }
+        
+        token_res = requests.post(token_url, data=token_data)
+        
+        if token_res.status_code != 200:
+            error_data = token_res.json()
+            error_msg = error_data.get('error_description', 'Login failed')
+            return {"error": f"লগইন ব্যর্থ: {error_msg}"}
+        
+        data = token_res.json()
+        access_token = data.get('access_token')
+        
+        if not access_token:
+            return {"error": "টোকেন পাওয়া যায়নি"}
+        
+        result = fetch_emails_with_token(email, access_token)
         return result
         
     except Exception as e:
@@ -183,7 +209,6 @@ def fetch_emails():
     if not credential:
         return jsonify({'error': 'ক্রেডেনশিয়াল দিন'})
     
-    # ক্রেডেনশিয়াল পার্স
     parsed = parse_credential(credential)
     
     if not parsed:
@@ -199,19 +224,20 @@ def fetch_emails():
         result = fetch_emails_with_token(email, access_token)
         if result.get('success'):
             return jsonify(result)
-        
-        # টোকেন কাজ না করলে রিফ্রেশ চেষ্টা
-        if refresh_token:
-            new_token = refresh_access_token(refresh_token)
-            if new_token:
-                result = fetch_emails_with_token(email, new_token)
-                if result.get('success'):
-                    result['new_access_token'] = new_token
-                    return jsonify(result)
     
-    # ২. পাসওয়ার্ড থাকলে পাসওয়ার্ড দিয়ে লগইন
+    # ২. পাসওয়ার্ড থাকলে Consumer এন্ডপয়েন্ট দিয়ে লগইন
     if password:
-        return jsonify(login_with_password(email, password))
+        # প্রথমে consumer দিয়ে চেষ্টা
+        result = login_consumer(email, password)
+        if result.get('success'):
+            return jsonify(result)
+        
+        # যদি না হয় ROPC দিয়ে চেষ্টা
+        result = login_consumer_ropc(email, password)
+        if result.get('success'):
+            return jsonify(result)
+        
+        return jsonify(result)
     
     return jsonify({'error': 'লগইন করার কোন উপায় নেই। পাসওয়ার্ড বা টোকেন দিন।'})
 
@@ -219,13 +245,10 @@ def fetch_emails():
 if __name__ == '__main__':
     print("""
     ╔══════════════════════════════════════════════════════════╗
-    ║   📧 Email OTP Reader - Credential String Support      ║
+    ║   📧 Email OTP Reader - Consumer Account Support       ║
     ║   Server running at: http://localhost:5000             ║
     ║                                                         ║
-    ║   📝 ফরম্যাট:                                           ║
-    ║   email:password                                        ║
-    ║   email:password:access_token:refresh_token             ║
-    ║                                                         ║
+    ║   🔑 Outlook / Hotmail অ্যাকাউন্ট সাপোর্ট            ║
     ║   ⚠️  শুধুমাত্র আপনার নিজের অ্যাকাউন্ট               ║
     ╚══════════════════════════════════════════════════════════╝
     """)
