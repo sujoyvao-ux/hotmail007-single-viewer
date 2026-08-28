@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Hotmail007 - Single Mail Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #fff;
+            font-size: 26px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h1 small {
+            font-size: 14px;
+            font-weight: 400;
+            color: #a0aec0;
+        }
+        .sub {
+            color: #a0aec0;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .card {
+            background: rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .card-title {
+            color: #e2e8f0;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        label {
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            transition: 0.3s;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+        }
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        @media (max-width:600px) {
+            .row-2 { grid-template-columns: 1fr; }
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-primary {
+            background: #4f46e5;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #6366f1;
+            transform: scale(1.01);
+            box-shadow: 0 8px 25px rgba(79,70,229,0.3);
+        }
+        .btn-danger {
+            background: #dc2626;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #ef4444;
+            transform: scale(1.01);
+            box-shadow: 0 8px 25px rgba(220,38,38,0.3);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .mail-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #e2e8f0;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .mail-header {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+        }
+        .mail-from {
+            color: #a5b4fc;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .mail-subject {
+            color: #f1f5f9;
+            font-weight: 600;
+            font-size: 18px;
+            margin: 6px 0;
+        }
+        .mail-time {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .mail-body {
+            color: #e2e8f0;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .mail-body .html-content {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .mail-body .html-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .mail-body .html-content a {
+            color: #818cf8;
+        }
+        .empty-state {
+            color: #94a3b8;
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 15px;
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .status-box {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .status-success {
+            background: rgba(34,197,94,0.12);
+            border: 1px solid #22c55e;
+            color: #86efac;
+        }
+        .status-error {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
+        .status-info {
+            background: rgba(59,130,246,0.12);
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+        }
+        .status-hidden {
+            display: none;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .badge {
+            display: inline-block;
+            background: #4f46e5;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+        .clear-confirm {
+            display: none;
+            background: rgba(220,38,38,0.1);
+            border: 1px solid #dc2626;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .clear-confirm.show {
+            display: block;
+        }
+        .clear-confirm p {
+            color: #fca5a5;
+            margin-bottom: 12px;
+        }
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+            flex: 0 1 auto;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <h1>
+            📬 Mail Viewer
+            <small>Single View</small>
+        </h1>
+        <p class="sub">একবারে একটি মেইল অ্যাকাউন্টের ইনবক্স দেখুন</p>
+
+        <!-- Input Card -->
+        <div class="card">
+            <div class="card-title">🔑 অ্যাকাউন্ট ইনপুট</div>
+            
+            <div class="row-2">
+                <div>
+                    <label>🔑 Client Key (API Key)</label>
+                    <input type="text" id="clientKey" placeholder="আপনার API Key দিন" />
+                </div>
+                <div>
+                    <label>📁 ফোল্ডার</label>
+                    <select id="folder">
+                        <option value="inbox">Inbox</option>
+                        <option value="junkemail">Junk Email</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top:12px;">
+                <label>📧 মেইল অ্যাকাউন্ট (email:password:refreshToken:clientId)</label>
+                <input type="text" id="accountInput" placeholder="example@outlook.com:password:refresh:client" />
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="fetchMail()" id="fetchBtn">
+                    📩 মেইল দেখুন
+                </button>
+                <button class="btn btn-danger" onclick="showClearConfirm()" id="clearBtn">
+                    🗑️ Clear
+                </button>
+            </div>
+
+            <div id="statusMessage" class="status-hidden status-box"></div>
+        </div>
+
+        <!-- Clear Confirmation -->
+        <div id="clearConfirm" class="clear-confirm">
+            <p>⚠️ আপনি কি নিশ্চিত যে সব ডেটা ক্লিয়ার করতে চান?</p>
+            <div class="btn-group">
+                <button class="btn btn-danger btn-sm" onclick="clearAll()">হ্যাঁ, ক্লিয়ার করুন</button>
+                <button class="btn btn-secondary btn-sm" onclick="hideClearConfirm()">বাতিল করুন</button>
+            </div>
+        </div>
+
+        <!-- Result Card -->
+        <div id="resultCard" class="hidden">
+            <div class="card">
+                <div class="flex-between">
+                    <div class="card-title">📨 মেইল ডিটেইল</div>
+                    <span class="badge" id="accountBadge">অ্যাকাউন্ট</span>
+                </div>
+                <div id="mailContent">
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>কোনো মেইল নেই</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const savedKey = localStorage.getItem('hm_clientKey');
+            const savedAccount = localStorage.getItem('hm_account');
+            const savedFolder = localStorage.getItem('hm_folder');
+            
+            if (savedKey) document.getElementById('clientKey').value = savedKey;
+            if (savedAccount) document.getElementById('accountInput').value = savedAccount;
+            if (savedFolder) document.getElementById('folder').value = savedFolder;
+
+            document.getElementById('clientKey').addEventListener('change', (e) => {
+                localStorage.setItem('hm_clientKey', e.target.value);
+            });
+            document.getElementById('accountInput').addEventListener('change', (e) => {
+                localStorage.setItem('hm_account', e.target.value);
+            });
+            document.getElementById('folder').addEventListener('change', (e) => {
+                localStorage.setItem('hm_folder', e.target.value);
+            });
+
+            document.getElementById('accountInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    fetchMail();
+                }
+            });
+        };
+
+        function showStatus(msg, type = 'info') {
+            const el = document.getElementById('statusMessage');
+            el.className = 'status-box';
+            if (type === 'error') {
+                el.className += ' status-error';
+            } else if (type === 'success') {
+                el.className += ' status-success';
+            } else {
+                el.className += ' status-info';
+            }
+            el.textContent = msg;
+            el.classList.remove('status-hidden');
+        }
+
+        function hideStatus() {
+            document.getElementById('statusMessage').classList.add('status-hidden');
+        }
+
+        function showClearConfirm() {
+            document.getElementById('clearConfirm').classList.add('show');
+        }
+
+        function hideClearConfirm() {
+            document.getElementById('clearConfirm').classList.remove('show');
+        }
+
+        async function fetchMail() {
+            const clientKey = document.getElementById('clientKey').value.trim();
+            const folder = document.getElementById('folder').value;
+            const account = document.getElementById('accountInput').value.trim();
+
+            if (!clientKey) {
+                showStatus('❌ দয়া করে আপনার API Key দিন', 'error');
+                return;
+            }
+            if (!account) {
+                showStatus('❌ দয়া করে একটি মেইল অ্যাকাউন্ট দিন', 'error');
+                return;
+            }
+
+            const parts = account.split(':');
+            if (parts.length < 4) {
+                showStatus('❌ অ্যাকাউন্ট ফরম্যাট ঠিক নয়। ব্যবহার করুন: email:password:refreshToken:clientId', 'error');
+                return;
+            }
+
+            hideStatus();
+            document.getElementById('fetchBtn').disabled = true;
+            document.getElementById('fetchBtn').textContent = '⏳ লোড হচ্ছে...';
+            document.getElementById('resultCard').classList.add('hidden');
+
+            try {
+                const url = `/api/mail?clientKey=${encodeURIComponent(clientKey)}&account=${encodeURIComponent(account)}&folder=${encodeURIComponent(folder)}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    showStatus('✅ মেইল পাওয়া গেছে!', 'success');
+                    displayMail(data.data, account);
+                    document.getElementById('resultCard').classList.remove('hidden');
+                } else {
+                    const errorMsg = data.message || 'মেইল পাওয়া যায়নি';
+                    showStatus('❌ ' + errorMsg, 'error');
+                    document.getElementById('resultCard').classList.add('hidden');
+                }
+            } catch (error) {
+                showStatus('❌ নেটওয়ার্ক ইরর: ' + error.message, 'error');
+                document.getElementById('resultCard').classList.add('hidden');
+            } finally {
+                document.getElementById('fetchBtn').disabled = false;
+                document.getElementById('fetchBtn').textContent = '📩 মেইল দেখুন';
+            }
+        }
+
+        function displayMail(mail, account) {
+            const container = document.getElementById('mailContent');
+            const accountShort = account.split(':')[0] || 'Unknown';
+            document.getElementById('accountBadge').textContent = '📧 ' + accountShort;
+
+            const from = mail.from || 'Unknown';
+            const subject = mail.subject || '(no subject)';
+            const receivedAt = mail.receivedAt || 'N/A';
+            
+            let body = mail.text || mail.html || 'কোনো কনটেন্ট নেই';
+            const isHtml = mail.html && !mail.text;
+
+            let bodyHtml = '';
+            if (isHtml) {
+                bodyHtml = `<div class="html-content">${body}</div>`;
+            } else {
+                bodyHtml = `<div style="white-space:pre-wrap;">${escapeHtml(body)}</div>`;
+            }
+
+            container.innerHTML = `
+                <div class="mail-box">
+                    <div class="mail-header">
+                        <div class="mail-from">📤 ${escapeHtml(from)}</div>
+                        <div class="mail-subject">${escapeHtml(subject)}</div>
+                        <div class="mail-time">🕐 ${escapeHtml(receivedAt)}</div>
+                    </div>
+                    <div class="mail-body">
+                        ${bodyHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function clearAll() {
+            document.getElementById('accountInput').value = '';
+            document.getElementById('clientKey').value = '';
+            document.getElementById('folder').value = 'inbox';
+            
+            document.getElementById('resultCard').classList.add('hidden');
+            document.getElementById('mailContent').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <p>কোনো মেইল নেই</p>
+                </div>
+            `;
+            document.getElementById('accountBadge').textContent = 'অ্যাকাউন্ট';
+            
+            hideStatus();
+            
+            localStorage.removeItem('hm_clientKey');
+            localStorage.removeItem('hm_account');
+            localStorage.removeItem('hm_folder');
+            
+            hideClearConfirm();
+            
+            showStatus('✅ সব ডেটা ক্লিয়ার করা হয়েছে!', 'success');
+            setTimeout(hideStatus, 3000);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                fetchMail();
+            }
+        });
+    </script>
+</body>
+</html>
