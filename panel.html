@@ -154,14 +154,6 @@
             transform: none !important;
         }
         .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
-        .btn-warning {
-            background: linear-gradient(135deg, #d97706, #f59e0b);
-            color: #fff;
-        }
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
-        }
         
         .status {
             color: #94a3b8;
@@ -201,6 +193,20 @@
             border-radius: 6px;
             font-size: 0.8rem;
             border: 1px solid rgba(251, 191, 36, 0.1);
+        }
+        
+        .new-cred-box {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            color: #94a3b8;
+            word-break: break-all;
+            max-height: 60px;
+            overflow-y: auto;
         }
         
         .email-item {
@@ -316,44 +322,41 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <h1>📧 Email OTP Reader</h1>
-            <p>ক্রেডেনশিয়াল পেস্ট করুন এবং শেষ ৫টি ইমেইল দেখুন (Auto Refresh Token)</p>
-            <span class="badge">🔄 Token মেয়াদ শেষ হলে Auto Refresh</span>
+            <p>ক্রেডেনশিয়াল পেস্ট করুন → বাকি সব অটোমেটিক!</p>
+            <span class="badge">🔄 সম্পূর্ণ অটোমেটিক</span>
             <span class="badge" style="margin-left:8px;">🔒 নিজের অ্যাকাউন্ট</span>
         </div>
         
-        <!-- Credential Input -->
         <div class="card">
             <div class="card-title">
                 🔑 ক্রেডেনশিয়াল স্ট্রিং
-                <small>(email:password:access_token:refresh_token)</small>
+                <small>(পেস্ট করুন, বাকি সব নিজেই করবে)</small>
             </div>
             
-            <textarea id="credInput" placeholder="আপনার পুরো ক্রেডেনশিয়াল স্ট্রিং এখানে পেস্ট করুন...">EarlineLymon4897@outlook.com:gEknRCSodJ:M.C529_SN1.0.U.MsaArtifacts.-CtBYsn6Ao!RIwe70umXWdqEcG4oCu8Mxz*buwvle9zlQ9AlzJrmW2DR49FG!qf2oFwrpLHWfbMOuJZawQvLxrYn5PRKcIPl4jNEzYCO6GS3tubsB!IW90H00skkRUNloHblilUBgpXl6Z!KZ1KdtddnvwG2uiFEXVu*3OCrkkXJlGEtilSicI7NDMgMn94E3X8dLhMNz*mmkCuORHSGwTTNkggd6G*3TC3uW3d*aaZTBWexRwvyLdKrT0LkxVfWf!TAcasre4RNBYQNIO9*44NYH7!kN7IPvtgKQ!KGh3Cme938YhyNfsl4hNTB9VO!qRoF5EaR8wu54VDbyrdCbg0UfKF4TbfO3*s5EH3wBhU4zprSjDMfoyB*IoldcRuRenVN017R4w4uIDYiZqdB9Dy0$:8b4ba9dd-3ea5-4e5f-86f1-ddba2230dcf2</textarea>
+            <textarea id="credInput" placeholder="এখানে আপনার ক্রেডেনশিয়াল পেস্ট করুন...">EarlineLymon4897@outlook.com:gEknRCSodJ:M.C529_SN1.0.U.MsaArtifacts.-CtBYsn6Ao!RIwe70umXWdqEcG4oCu8Mxz*buwvle9zlQ9AlzJrmW2DR49FG!qf2oFwrpLHWfbMOuJZawQvLxrYn5PRKcIPl4jNEzYCO6GS3tubsB!IW90H00skkRUNloHblilUBgpXl6Z!KZ1KdtddnvwG2uiFEXVu*3OCrkkXJlGEtilSicI7NDMgMn94E3X8dLhMNz*mmkCuORHSGwTTNkggd6G*3TC3uW3d*aaZTBWexRwvyLdKrT0LkxVfWf!TAcasre4RNBYQNIO9*44NYH7!kN7IPvtgKQ!KGh3Cme938YhyNfsl4hNTB9VO!qRoF5EaR8wu54VDbyrdCbg0UfKF4TbfO3*s5EH3wBhU4zprSjDMfoyB*IoldcRuRenVN017R4w4uIDYiZqdB9Dy0$:8b4ba9dd-3ea5-4e5f-86f1-ddba2230dcf2</textarea>
             
             <div class="format-hint">
                 📝 <strong>ফরম্যাট:</strong><br>
                 <code>email@outlook.com:password:access_token:refresh_token</code>
                 <br><br>
-                🔄 <strong>Auto Refresh:</strong> Token মেয়াদ শেষ হলে refresh_token দিয়ে নতুন টোকেন তৈরি হবে!
+                🔄 <strong>অটোমেটিক যা হবে:</strong><br>
+                1️⃣ access_token দিয়ে চেষ্টা → 2️⃣ না হলে refresh_token → 3️⃣ না হলে password
             </div>
             
             <div class="controls">
-                <button class="btn btn-primary" onclick="fetchEmails(5)">📥 শেষ ৫টি ইমেইল দেখুন</button>
+                <button class="btn btn-primary" onclick="fetchEmails()">🚀 ইনবক্স দেখুন (অটোমেটিক)</button>
                 <button class="btn btn-outline btn-sm" onclick="clearAll()">🗑️ ক্লিয়ার</button>
                 <span class="status" id="status">✅ প্রস্তুত</span>
             </div>
             
-            <!-- সংরক্ষিত ক্রেডেনশিয়াল -->
             <div style="margin-top:12px;">
                 <span style="color:#64748b;font-size:0.8rem;">📂 সংরক্ষিত: </span>
                 <div class="saved-creds" id="savedCreds"></div>
             </div>
         </div>
         
-        <!-- User Info -->
         <div id="userBar" style="display:none;" class="user-bar">
             <span class="user-name" id="userName">👤</span>
             <span class="user-email" id="userEmail">📧</span>
@@ -361,24 +364,30 @@
             <span id="tokenStatus" style="color:#fbbf24;font-size:0.8rem;"></span>
         </div>
         
-        <!-- Email List -->
+        <div id="newCredSection" style="display:none;" class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <span style="color:#34d399;font-weight:600;">✅ নতুন ক্রেডেনশিয়াল (কপি করে রাখুন):</span>
+                <button onclick="copyNewCred()" class="btn btn-sm" style="background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.2);padding:4px 12px;border-radius:4px;cursor:pointer;">📋 কপি</button>
+            </div>
+            <div class="new-cred-box" id="newCredBox"></div>
+        </div>
+        
         <div class="card" style="padding:16px;">
             <div id="emailContainer">
                 <div class="empty-state">
                     <div class="icon">📭</div>
                     <p>কোনো ইমেইল নেই</p>
-                    <p style="font-size:0.85rem;color:#475569;">উপরে ক্রেডেনশিয়াল পেস্ট করে "ইমেইল দেখুন" ক্লিক করুন</p>
+                    <p style="font-size:0.85rem;color:#475569;">ক্রেডেনশিয়াল পেস্ট করে "ইনবক্স দেখুন" ক্লিক করুন</p>
                 </div>
             </div>
         </div>
         
         <div class="footer">
-            ⚡ Microsoft Graph API | 🔄 Auto Refresh Token | আপনার নিজের ডেটা নিরাপদে রাখুন
+            ⚡ Microsoft Graph API | 🔄 সম্পূর্ণ অটোমেটিক | আপনার নিজের ডেটা নিরাপদে রাখুন
         </div>
     </div>
     
     <script>
-        // DOM রেফারেন্স
         const credInput = document.getElementById('credInput');
         const statusEl = document.getElementById('status');
         const container = document.getElementById('emailContainer');
@@ -387,9 +396,10 @@
         const userEmail = document.getElementById('userEmail');
         const emailCount = document.getElementById('emailCount');
         const tokenStatus = document.getElementById('tokenStatus');
+        const newCredSection = document.getElementById('newCredSection');
+        const newCredBox = document.getElementById('newCredBox');
         const savedCredsDiv = document.getElementById('savedCreds');
         
-        // ============= সংরক্ষিত ক্রেডেনশিয়াল =============
         function loadSavedCreds() {
             const saved = localStorage.getItem('savedCreds');
             if (saved) {
@@ -408,16 +418,15 @@
                 savedCredsDiv.innerHTML = '<span style="color:#475569;font-size:0.8rem;">কোনো ক্রেডেনশিয়াল সেভ নেই</span>';
                 return;
             }
-            
             creds.forEach((cred) => {
                 const el = document.createElement('span');
                 el.className = 'saved-creds-item';
                 const email = cred.split(':')[0] || 'Unknown';
                 el.textContent = email;
-                el.title = 'ক্লিক করে এই ক্রেডেনশিয়াল লোড করুন';
+                el.title = 'ক্লিক করে লোড করুন';
                 el.onclick = () => {
                     credInput.value = cred;
-                    fetchEmails(5);
+                    fetchEmails();
                 };
                 savedCredsDiv.appendChild(el);
             });
@@ -432,10 +441,8 @@
             renderSavedCreds(creds);
         }
         
-        // ============= ইমেইল ফেচ =============
-        async function fetchEmails(limit = 5) {
+        async function fetchEmails() {
             const credential = credInput.value.trim();
-            
             if (!credential) {
                 setStatus('⚠️ ক্রেডেনশিয়াল দিন', 'error');
                 return;
@@ -443,22 +450,19 @@
             
             const btn = document.querySelector('.btn-primary');
             btn.disabled = true;
-            btn.textContent = '⏳ লোড হচ্ছে...';
+            btn.textContent = '⏳ প্রসেসিং...';
             
-            setStatus('⏳ ইমেইল পড়া হচ্ছে...', 'info');
-            container.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p style="margin-top:12px;">ক্রেডেনশিয়াল চেক করা হচ্ছে...</p>
-                </div>
-            `;
+            setStatus('🔄 access_token চেক করা হচ্ছে...', 'info');
+            container.innerHTML = `<div class="loading"><div class="spinner"></div><p>অটোমেটিক প্রসেসিং...</p></div>`;
+            newCredSection.style.display = 'none';
+            userBar.style.display = 'none';
             tokenStatus.textContent = '';
             
             try {
                 const res = await fetch('/api/fetch', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ credential, limit })
+                    body: JSON.stringify({ credential, limit: 5 })
                 });
                 
                 const data = await res.json();
@@ -470,13 +474,8 @@
                         <div class="empty-state">
                             <div class="icon">⚠️</div>
                             <p style="color:#f87171;">${data.error}</p>
-                            <p style="font-size:0.85rem;color:#475569;margin-top:8px;">
-                                💡 সঠিক ফরম্যাট: <code style="color:#c084fc;">email:password:access_token:refresh_token</code>
-                            </p>
-                            ${data.needs_login ? `<p style="color:#fbbf24;margin-top:8px;">🔄 নতুন টোকেন প্রয়োজন। আবার চেষ্টা করুন।</p>` : ''}
                         </div>
                     `;
-                    userBar.style.display = 'none';
                     return;
                 }
                 
@@ -488,44 +487,34 @@
                     userEmail.textContent = `📧 ${data.email}`;
                     emailCount.textContent = `${data.total}টি ইমেইল`;
                     
-                    // নতুন টোকেন পেলে দেখান
-                    if (data.new_access_token) {
+                    if (data.token_refreshed) {
                         tokenStatus.textContent = '🔄 নতুন টোকেন তৈরি হয়েছে!';
                         tokenStatus.style.color = '#34d399';
                     } else {
-                        tokenStatus.textContent = '';
+                        tokenStatus.textContent = '✅ টোকেন বৈধ';
+                        tokenStatus.style.color = '#34d399';
+                    }
+                    
+                    if (data.new_credential) {
+                        newCredBox.textContent = data.new_credential;
+                        newCredSection.style.display = 'block';
                     }
                     
                     renderEmails(data.emails || []);
                     setStatus(`✅ ${data.total}টি ইমেইল পাওয়া গেছে (${data.user})`, 'success');
-                } else {
-                    setStatus('❌ কোনো ইমেইল পাওয়া যায়নি', 'error');
                 }
-                
             } catch(e) {
-                setStatus('❌ সার্ভার কানেক্ট করতে পারেনি: ' + e.message, 'error');
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">🔌</div>
-                        <p>সার্ভার অফলাইন</p>
-                        <p style="font-size:0.85rem;color:#475569;">সার্ভার চালু করুন: python server.py</p>
-                    </div>
-                `;
+                setStatus('❌ Error: ' + e.message, 'error');
+                container.innerHTML = `<div class="empty-state"><div class="icon">🔌</div><p>সার্ভার অফলাইন</p></div>`;
             }
             
             btn.disabled = false;
-            btn.textContent = '📥 শেষ ৫টি ইমেইল দেখুন';
+            btn.textContent = '🚀 ইনবক্স দেখুন (অটোমেটিক)';
         }
         
-        // ============= ইমেইল রেন্ডার =============
         function renderEmails(emails) {
             if (!emails || emails.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">📭</div>
-                        <p>কোনো ইমেইল নেই</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>কোনো ইমেইল নেই</p></div>`;
                 return;
             }
             
@@ -539,16 +528,13 @@
                     <div class="email-item">
                         <div class="from">📤 ${escapeHtml(email.from)}</div>
                         <div class="subject">📌 ${escapeHtml(email.subject)}</div>
-                        <div style="margin:8px 0;">
-                            ${otpDisplay}
-                        </div>
+                        <div style="margin:8px 0;">${otpDisplay}</div>
                         <div class="time">🕐 ${email.received}</div>
                         <span class="toggle-preview" onclick="togglePreview(${index})">👁️ প্রিভিউ দেখুন</span>
                         <div class="preview" id="preview-${index}">${escapeHtml(email.preview || 'কোনো প্রিভিউ নেই')}</div>
                     </div>
                 `;
             });
-            
             container.innerHTML = html;
         }
         
@@ -558,15 +544,20 @@
         }
         
         function clearAll() {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="icon">🗑️</div>
-                    <p>ক্লিয়ার করা হয়েছে</p>
-                </div>
-            `;
+            container.innerHTML = `<div class="empty-state"><div class="icon">🗑️</div><p>ক্লিয়ার করা হয়েছে</p></div>`;
             userBar.style.display = 'none';
+            newCredSection.style.display = 'none';
             tokenStatus.textContent = '';
             setStatus('🗑️ ক্লিয়ার করা হয়েছে', '');
+        }
+        
+        function copyNewCred() {
+            const text = newCredBox.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                btn.textContent = '✅ কপি!';
+                setTimeout(() => { btn.textContent = '📋 কপি'; }, 2000);
+            });
         }
         
         function setStatus(msg, type) {
@@ -582,17 +573,15 @@
             return div.innerHTML;
         }
         
-        // ============= কীবোর্ড শর্টকাট =============
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
-                fetchEmails(5);
+                fetchEmails();
             }
         });
         
-        // ============= পেজ লোড =============
         loadSavedCreds();
-        setTimeout(() => fetchEmails(5), 1000);
+        setTimeout(fetchEmails, 800);
     </script>
 </body>
 </html>
