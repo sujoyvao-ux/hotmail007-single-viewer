@@ -27,7 +27,50 @@ def extract_otp(text):
             return match.group(1).replace(' ', '').replace('-', '')
     return None
 
-# ============= ইমেইল ফেচ (সরাসরি টোকেন দিয়ে) =============
+# ============= Refresh Token দিয়ে নতুন Access Token =============
+def refresh_access_token(refresh_token):
+    """
+    Refresh Token ব্যবহার করে নতুন Access Token তৈরি করে
+    """
+    try:
+        url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
+        
+        data = {
+            "client_id": "00000000482c6b4a",
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token"
+        }
+        
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        
+        response = requests.post(url, data=data, headers=headers)
+        
+        print(f"Refresh Token Response Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            new_access_token = result.get('access_token')
+            new_refresh_token = result.get('refresh_token')
+            
+            if new_access_token:
+                return {
+                    'success': True,
+                    'access_token': new_access_token,
+                    'refresh_token': new_refresh_token or refresh_token
+                }
+            else:
+                return {'success': False, 'error': 'No access token in response'}
+        else:
+            error_data = response.json()
+            error_msg = error_data.get('error_description', 'Unknown error')
+            return {'success': False, 'error': f'Refresh failed: {error_msg}'}
+            
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+# ============= টোকেন দিয়ে ইমেইল ফেচ =============
 def fetch_emails_with_token(access_token, limit=5):
     try:
         headers = {
@@ -38,13 +81,17 @@ def fetch_emails_with_token(access_token, limit=5):
         # ইউজার ইনফো
         user_res = requests.get("https://graph.microsoft.com/v1.0/me", headers=headers)
         if user_res.status_code != 200:
-            return {"error": f"টোকেন বৈধ নয় (Status: {user_res.status_code})", "status": user_res.status_code}
+            return {
+                "error": f"টোকেন বৈধ নয় (Status: {user_res.status_code})", 
+                "status": user_res.status_code,
+                "success": False
+            }
         
         user_data = user_res.json()
         user_name = user_data.get("displayName") or user_data.get("userPrincipalName", "Unknown")
         email = user_data.get("userPrincipalName") or user_data.get("mail", "Unknown")
         
-        # ইমেইল ফেচ (শেষ ৫টি)
+        # ইমেইল ফেচ
         url = "https://graph.microsoft.com/v1.0/me/mailfolders/inbox/messages"
         params = {
             "$top": limit,
@@ -55,7 +102,11 @@ def fetch_emails_with_token(access_token, limit=5):
         response = requests.get(url, headers=headers, params=params)
         
         if response.status_code != 200:
-            return {"error": f"ইমেইল ফেচ করতে পারেনি (Status: {response.status_code})", "status": response.status_code}
+            return {
+                "error": f"ইমেইল ফেচ করতে পারেনি (Status: {response.status_code})",
+                "status": response.status_code,
+                "success": False
+            }
         
         emails = response.json().get("value", [])
         
@@ -69,7 +120,6 @@ def fetch_emails_with_token(access_token, limit=5):
             full_text = subject + " " + preview
             otp = extract_otp(full_text)
             
-            # সময় ফরম্যাট
             try:
                 dt = datetime.fromisoformat(received.replace('Z', '+00:00'))
                 time_str = dt.strftime('%d %b %Y, %I:%M %p')
@@ -94,7 +144,7 @@ def fetch_emails_with_token(access_token, limit=5):
         }
         
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e), "success": False}
 
 # ============= ক্রেডেনশিয়াল পার্স =============
 def parse_credential(cred_string):
@@ -120,7 +170,7 @@ def parse_credential(cred_string):
     else:
         return None
 
-# ============= API - ইমেইল ফেচ =============
+# ============= API - ইমেইল ফেচ (Refresh Token Support) =============
 @app.route('/api/fetch', methods=['POST'])
 def fetch_emails_api():
     data = request.json
@@ -138,19 +188,53 @@ def fetch_emails_api():
     
     access_token = parsed.get('access_token')
     refresh_token = parsed.get('refresh_token')
+    email = parsed.get('email')
     
     if not access_token:
         return jsonify({'error': 'টোকেন পাওয়া যায়নি'})
     
-    # টোকেন দিয়ে ইমেইল ফেচ
+    # প্রথমে access_token দিয়ে চেষ্টা
     result = fetch_emails_with_token(access_token, limit)
     
-    if result.get('success'):
-        # refresh_token সংরক্ষণ
-        result['refresh_token'] = refresh_token
-        return jsonify(result)
-    else:
-        return jsonify(result)
+    # যদি 401 error আসে (টোকেন মেয়াদ শেষ)
+    if not result.get('success') and result.get('status') == 401:
+        print("🔄 Token expired, trying to refresh...")
+        
+        # refresh_token থাকলে নতুন টোকেন তৈরি করি
+        if refresh_token:
+            refresh_result = refresh_access_token(refresh_token)
+            
+            if refresh_result.get('success'):
+                new_access_token = refresh_result.get('access_token')
+                new_refresh_token = refresh_result.get('refresh_token')
+                
+                print("✅ New token obtained successfully!")
+                
+                # নতুন টোকেন দিয়ে আবার চেষ্টা
+                result = fetch_emails_with_token(new_access_token, limit)
+                
+                if result.get('success'):
+                    # নতুন টোকেন রিটার্ন করি
+                    result['new_access_token'] = new_access_token
+                    result['new_refresh_token'] = new_refresh_token
+                    return jsonify(result)
+                else:
+                    return jsonify({
+                        'error': f'নতুন টোকেন দিয়েও কাজ হয়নি: {result.get("error")}',
+                        'needs_login': True
+                    })
+            else:
+                return jsonify({
+                    'error': f'Refresh Token কাজ করছে না: {refresh_result.get("error")}',
+                    'needs_login': True
+                })
+        else:
+            return jsonify({
+                'error': 'টোকেন মেয়াদ শেষ হয়েছে এবং Refresh Token নেই',
+                'needs_login': True
+            })
+    
+    return jsonify(result)
 
 # ============= হোম পেজ =============
 @app.route('/')
@@ -160,14 +244,12 @@ def home():
 # ============= সার্ভার রান =============
 if __name__ == '__main__':
     print("""
-    ╔══════════════════════════════════════════════════════════╗
-    ║   📧 Email OTP Reader - Direct Token Method            ║
-    ║   Server running at: http://localhost:5000             ║
-    ║                                                         ║
-    ║   📝 ফরম্যাট:                                           ║
-    ║   email:password:access_token:refresh_token             ║
-    ║                                                         ║
-    ║   ⚠️ শুধুমাত্র আপনার নিজের অ্যাকাউন্ট ব্যবহার করুন    ║
-    ╚══════════════════════════════════════════════════════════╝
+    ╔══════════════════════════════════════════════════════════════╗
+    ║   📧 Email OTP Reader - Auto Refresh Token Support         ║
+    ║   Server running at: http://localhost:5000                 ║
+    ║                                                             ║
+    ║   🔄 Token মেয়াদ শেষ হলে Auto Refresh হবে!                ║
+    ║   ⚠️ শুধুমাত্র আপনার নিজের অ্যাকাউন্ট ব্যবহার করুন        ║
+    ╚══════════════════════════════════════════════════════════════╝
     """)
     app.run(debug=True, host='0.0.0.0', port=5000)
