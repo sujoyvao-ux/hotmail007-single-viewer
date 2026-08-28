@@ -2,8 +2,9 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import requests
 import re
-import base64
 import json
+import base64
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 CORS(app)
@@ -29,6 +30,7 @@ def parse_credential(cred_string):
     """
     ফরম্যাট: email:password:access_token:refresh_token
     অথবা: email:password
+    অথবা: email:access_token (পাসওয়ার্ড ছাড়া)
     """
     parts = cred_string.strip().split(':')
     
@@ -38,6 +40,14 @@ def parse_credential(cred_string):
             'password': parts[1],
             'access_token': parts[2],
             'refresh_token': parts[3]
+        }
+    elif len(parts) == 3:
+        # email:password:access_token (refresh_token নেই)
+        return {
+            'email': parts[0],
+            'password': parts[1],
+            'access_token': parts[2],
+            'refresh_token': None
         }
     elif len(parts) >= 2:
         return {
@@ -65,7 +75,7 @@ def refresh_access_token(refresh_token):
     except:
         return None
 
-# ============= ইমেইল ফেচ =============
+# ============= টোকেন দিয়ে ইমেইল ফেচ =============
 def fetch_emails_with_token(email, access_token):
     try:
         headers = {"Authorization": f"Bearer {access_token}"}
@@ -74,12 +84,15 @@ def fetch_emails_with_token(email, access_token):
         user_res = requests.get("https://graph.microsoft.com/v1.0/me", headers=headers)
         user_name = "Unknown"
         if user_res.status_code == 200:
-            user_name = user_res.json().get("displayName") or user_res.json().get("userPrincipalName", "Unknown")
+            data = user_res.json()
+            user_name = data.get("displayName") or data.get("userPrincipalName", "Unknown")
+        else:
+            return {"error": f"টোকেন বৈধ নয় (Status: {user_res.status_code})"}
         
         # ইমেইল ফেচ
         url = "https://graph.microsoft.com/v1.0/me/mailfolders/inbox/messages"
         params = {
-            "$top": 10,
+            "$top": 15,
             "$select": "subject,bodyPreview,from,receivedDateTime",
             "$orderby": "receivedDateTime desc"
         }
@@ -121,10 +134,11 @@ def fetch_emails_with_token(email, access_token):
     except Exception as e:
         return {"error": str(e)}
 
-# ============= মেইল + পাসওয়ার্ড দিয়ে লগইন =============
+# ============= পাসওয়ার্ড দিয়ে লগইন (এখন /organizations ব্যবহার করব) =============
 def login_with_password(email, password):
     try:
-        token_url = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+        # /organizations এন্ডপয়েন্ট ব্যবহার করি
+        token_url = "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
         token_data = {
             "client_id": "00000000482c6b4a",
             "scope": "https://outlook.office.com/Mail.Read offline_access",
@@ -136,7 +150,8 @@ def login_with_password(email, password):
         token_res = requests.post(token_url, data=token_data)
         
         if token_res.status_code != 200:
-            error_msg = token_res.json().get('error_description', 'Login failed')
+            error_data = token_res.json()
+            error_msg = error_data.get('error_description', 'Login failed')
             return {"error": f"লগইন ব্যর্থ: {error_msg}"}
         
         data = token_res.json()
@@ -179,12 +194,13 @@ def fetch_emails():
     access_token = parsed['access_token']
     refresh_token = parsed['refresh_token']
     
-    # যদি অ্যাক্সেস টোকেন থাকে, সেটা ব্যবহার করুন
+    # ১. প্রথমে access_token ব্যবহার করে চেষ্টা করি
     if access_token:
         result = fetch_emails_with_token(email, access_token)
         if result.get('success'):
             return jsonify(result)
-        # টোকেন মেয়াদ শেষ হলে রিফ্রেশ চেষ্টা
+        
+        # টোকেন কাজ না করলে রিফ্রেশ চেষ্টা
         if refresh_token:
             new_token = refresh_access_token(refresh_token)
             if new_token:
@@ -193,8 +209,11 @@ def fetch_emails():
                     result['new_access_token'] = new_token
                     return jsonify(result)
     
-    # পাসওয়ার্ড দিয়ে লগইন
-    return jsonify(login_with_password(email, password))
+    # ২. পাসওয়ার্ড থাকলে পাসওয়ার্ড দিয়ে লগইন
+    if password:
+        return jsonify(login_with_password(email, password))
+    
+    return jsonify({'error': 'লগইন করার কোন উপায় নেই। পাসওয়ার্ড বা টোকেন দিন।'})
 
 # ============= সার্ভার রান =============
 if __name__ == '__main__':
